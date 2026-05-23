@@ -1103,14 +1103,19 @@ function renderHome(){
 
   // Active parking banner
   if(active){
-    const loc=[active.addr,active.floor,active.zone].filter(Boolean).join(' ');
-    html+=`<div class="pb" style="margin-top:12px">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="20" height="20" style="color:var(--ok);flex-shrink:0"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 17V7h4a3 3 0 0 1 0 6H9"/></svg>
+    const addr=[active.addr,active.zone].filter(Boolean).join(' ');
+    const photo=active.photos?.[0];
+    html+=`<div class="pb" style="margin-top:12px;align-items:flex-start">
+      ${photo
+        ?`<img src="${photo}" onclick="openLightbox('${photo}')" style="width:60px;height:60px;object-fit:cover;border-radius:8px;flex-shrink:0;cursor:zoom-in">`
+        :`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="20" height="20" style="color:var(--ok);flex-shrink:0;margin-top:2px"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 17V7h4a3 3 0 0 1 0 6H9"/></svg>`
+      }
       <div class="pi">
-        <div class="pl">현재 주차 중 — ${loc||'위치 정보 없음'}</div>
+        <div class="pl">현재 주차 중${addr?' — '+addr:''}</div>
+        ${active.floor?`<div style="font-size:15px;font-weight:800;color:var(--ok);line-height:1.3">${active.floor}</div>`:''}
         <div class="pt">${fmtTime(active.ts)} 주차</div>
       </div>
-      <button class="ex" onclick="event.stopPropagation();exitParking('${active.id}')">출차</button>
+      <button class="ex" onclick="event.stopPropagation();exitParking('${active.id}')" style="margin-top:2px">출차</button>
     </div>`;
   }
 
