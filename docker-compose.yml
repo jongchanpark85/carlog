@@ -10,11 +10,11 @@ services:
     restart: unless-stopped
     environment:
       # Container listens on $PORT. 3403 is the project's canonical port.
-      PORT: 3404
+      PORT: 3403
       TZ: Asia/Seoul
     ports:
       # Host:Container — same port both sides for clarity.
-      - "3404:3404"
+      - "3403:3403"
     volumes:
       # NAS 운영 편의: 디스크의 app/이 곧 서빙 대상이라
       # `git pull` 후 `docker restart`만으로 새 코드가 반영됨 (이미지 재빌드 불필요).
@@ -22,7 +22,7 @@ services:
       # Dockerfile의 COPY로 자체 완결 이미지를 빌드한다.
       - ./app:/usr/share/nginx/html:ro
     healthcheck:
-      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:3404/healthz"]
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:3403/healthz"]
       interval: 30s
       timeout: 3s
       retries: 3

@@ -87,7 +87,7 @@ Business mode adds:
 | Now | **Synology NAS** | DSM Container Manager + 1-min `git pull` cron |
 | Next | **GCP Cloud Run** | `gcloud run deploy --source .` |
 
-Port default: **3404** (INO hub uses 3403; carlog uses 3404 to avoid conflict).
+Port default: **3403**. Keep as-is unless explicitly changed.
 
 ## Conventions
 

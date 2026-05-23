@@ -13,7 +13,7 @@
 FROM nginx:1.27-alpine
 
 # Default port — overridable at runtime via $PORT.
-ENV PORT=3404
+ENV PORT=3403
 
 # Install gettext for envsubst (renders nginx.conf with $PORT).
 RUN apk add --no-cache gettext curl tzdata \
@@ -31,11 +31,11 @@ COPY docker-entrypoint.sh /docker-entrypoint.sh
 RUN chmod +x /docker-entrypoint.sh
 
 # Cloud Run/App Runner ignore EXPOSE but it's good documentation.
-EXPOSE 3404
+EXPOSE 3403
 
 # Container-level healthcheck (ECS/Compose; Cloud Run uses its own probes).
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD curl -fsS "http://127.0.0.1:${PORT:-3404}/healthz" || exit 1
+  CMD curl -fsS "http://127.0.0.1:${PORT:-3403}/healthz" || exit 1
 
 ENTRYPOINT ["/docker-entrypoint.sh"]
 CMD ["nginx", "-g", "daemon off;"]
