@@ -226,6 +226,22 @@ select.fi{-webkit-appearance:none;appearance:none;background-image:url("data:ima
 #update-banner.show{transform:translateY(0)}
 /* ── Toast ──────────────────────────────────────── */
 #toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:var(--tx);color:var(--bg);padding:10px 20px;border-radius:20px;font-size:13px;font-weight:600;z-index:999;display:none;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.2)}
+/* ── Rental ─────────────────────────────────────── */
+.rent-cmp{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+.rent-col{background:var(--card);border:1px solid var(--bd);border-radius:var(--r);padding:14px}
+.rent-col-hd{font-size:12px;font-weight:700;letter-spacing:.05em;margin-bottom:10px}
+.rent-col-hd.pk{color:var(--ok)}
+.rent-col-hd.rt{color:var(--warn)}
+.rent-row{display:flex;justify-content:space-between;align-items:baseline;font-size:13px;padding:5px 0;border-bottom:1px solid var(--bd)}
+.rent-row:last-child{border-bottom:none}
+.rent-row .rl{color:var(--txm);flex-shrink:0}
+.rent-row .rv{font-weight:600;text-align:right}
+/* ── Print ───────────────────────────────────────── */
+@media print{
+  .bnav,#fab,#update-banner,#toast,.no-print{display:none!important}
+  html,body{height:auto!important;overflow:auto!important}
+  #app{position:relative!important;overflow:visible!important;bottom:auto!important;top:auto!important}
+}
 </style>
 </head>
 <body>
@@ -641,6 +657,83 @@ select.fi{-webkit-appearance:none;appearance:none;background-image:url("data:ima
     <textarea id="status-desc" class="fi" rows="4" placeholder="어디에 긁힘이 있는지, 어떤 경고등인지 등을 기록하세요"></textarea>
   </div>
 
+  <!-- RENTAL LIST (business) -->
+  <div id="v-rental" class="view">
+    <button class="back" onclick="go('home')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><path d="M15 18l-6-6 6-6"/></svg>
+      홈
+    </button>
+    <div class="ab">
+      <h1>렌트카 점검</h1>
+      <button class="ib" onclick="initRentalPickup();go('rental-pickup')" title="새 점검">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+      </button>
+    </div>
+    <div id="rental-list"></div>
+  </div>
+
+  <!-- RENTAL PICKUP -->
+  <div id="v-rental-pickup" class="view">
+    <button class="back" onclick="go('rental')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><path d="M15 18l-6-6 6-6"/></svg>
+      뒤로
+    </button>
+    <div class="ab">
+      <h1>인수 점검</h1>
+      <button style="display:flex;align-items:center;padding:0 14px;height:36px;border-radius:8px;background:var(--ok);color:#fff;font-weight:700;font-size:13px" onclick="saveRentalPickup()">저장</button>
+    </div>
+    <div id="rental-vehicle-info"></div>
+    <div class="fg"><label>인수 날짜 *</label><input id="rental-pickup-date" type="date" class="fi"></div>
+    <div class="fg"><label>주행거리 (km) *</label><input id="rental-pickup-mileage" type="number" class="fi" placeholder="예: 52000" inputmode="numeric"></div>
+    <p class="sec">연료 상태</p>
+    <div id="rental-pickup-fuel-chips" class="cg" style="margin-bottom:16px"></div>
+    <p class="sec">외관 사진 <span style="font-weight:400;font-size:13px;color:var(--txm)">(전면·후면·측면 등)</span></p>
+    <div id="rental-pickup-photos" class="pgrid"></div>
+    <p class="sec" style="margin-top:16px">특이사항 <span style="font-weight:400;font-size:13px;color:var(--txm)">(선택)</span></p>
+    <textarea id="rental-pickup-note" class="fi" rows="3" placeholder="기존 스크래치, 특이사항 등을 기록하세요"></textarea>
+  </div>
+
+  <!-- RENTAL RETURN -->
+  <div id="v-rental-return" class="view">
+    <button class="back" onclick="go('rental')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><path d="M15 18l-6-6 6-6"/></svg>
+      뒤로
+    </button>
+    <div class="ab">
+      <h1>반납 점검</h1>
+      <button style="display:flex;align-items:center;padding:0 14px;height:36px;border-radius:8px;background:var(--warn);color:#fff;font-weight:700;font-size:13px" onclick="saveRentalReturn()">저장</button>
+    </div>
+    <div class="fg"><label>반납 날짜 *</label><input id="rental-return-date" type="date" class="fi"></div>
+    <div class="fg"><label>주행거리 (km) *</label><input id="rental-return-mileage" type="number" class="fi" placeholder="예: 53200" inputmode="numeric"></div>
+    <p class="sec">연료 상태</p>
+    <div id="rental-return-fuel-chips" class="cg" style="margin-bottom:16px"></div>
+    <p class="sec">외관 사진 <span style="font-weight:400;font-size:13px;color:var(--txm)">(반납 시점)</span></p>
+    <div id="rental-return-photos" class="pgrid"></div>
+    <p class="sec" style="margin-top:16px">특이사항 <span style="font-weight:400;font-size:13px;color:var(--txm)">(선택)</span></p>
+    <textarea id="rental-return-note" class="fi" rows="3" placeholder="반납 시 확인된 특이사항을 기록하세요"></textarea>
+  </div>
+
+  <!-- RENTAL REPORT -->
+  <div id="v-rental-report" class="view">
+    <div class="no-print">
+      <button class="back" onclick="go('rental')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><path d="M15 18l-6-6 6-6"/></svg>
+        목록
+      </button>
+      <div class="ab">
+        <h1>점검 리포트</h1>
+        <button class="ib" onclick="printRentalReport()" title="PDF 출력">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+        </button>
+      </div>
+    </div>
+    <div id="rental-report-content"></div>
+    <button class="btn btn-pr no-print" onclick="printRentalReport()" style="margin-top:8px">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+      PDF 출력
+    </button>
+  </div>
+
   <!-- TIMELINE -->
   <div id="v-timeline" class="view">
     <button class="back" onclick="go('home')">
@@ -715,6 +808,8 @@ const LS={
   saveAccident(v){save('car_a',v)},
   saveStatus(v){save('car_s',v)},
   saveHandover(v){save('car_h',v)},
+  rental:()=>load('car_r'),
+  saveRental(v){save('car_r',v)},
 };
 
 // ════════════════════════════════════════════════
@@ -728,6 +823,7 @@ let parkingPhotos=[],parkingLat=null,parkingLng=null,parkingAddr=null,selFloor=n
 let accPhotos=[],accLat=null,accLng=null,accAddr=null;
 let maintPhotos=[],statusPhotos=[],selStatusCat=STATUS_CATS[0];
 let handoverPhotos=[],selHandoverType=HANDOVER_TYPES[0],selFuel=FUEL_LEVELS[0];
+let rentalPickupPhotos=[],rentalReturnPhotos=[],selRentalPickupFuel=FUEL_LEVELS[0],selRentalReturnFuel=FUEL_LEVELS[0],curRentalId=null;
 
 // ════════════════════════════════════════════════
 // UTILS
@@ -986,6 +1082,10 @@ function renderHome(){
     <button class="qb" style="color:var(--pr-l)" onclick="go('handover');renderHandoverList()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
       인계이력
+    </button>
+    <button class="qb" style="color:var(--ok)" onclick="go('rental')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+      렌트카 점검
     </button>`:''}
   </div>`;
 
@@ -1464,6 +1564,10 @@ function initHandoverForm(){
 
 function addHandoverPhoto(d){handoverPhotos.push(d);renderPhotoGrid('handover-photos',handoverPhotos,'addHandoverPhoto','removeHandoverPhoto');}
 function removeHandoverPhoto(i){handoverPhotos.splice(i,1);renderPhotoGrid('handover-photos',handoverPhotos,'addHandoverPhoto','removeHandoverPhoto');}
+function addRentalPickupPhoto(d){rentalPickupPhotos.push(d);renderPhotoGrid('rental-pickup-photos',rentalPickupPhotos,'addRentalPickupPhoto','removeRentalPickupPhoto');}
+function removeRentalPickupPhoto(i){rentalPickupPhotos.splice(i,1);renderPhotoGrid('rental-pickup-photos',rentalPickupPhotos,'addRentalPickupPhoto','removeRentalPickupPhoto');}
+function addRentalReturnPhoto(d){rentalReturnPhotos.push(d);renderPhotoGrid('rental-return-photos',rentalReturnPhotos,'addRentalReturnPhoto','removeRentalReturnPhoto');}
+function removeRentalReturnPhoto(i){rentalReturnPhotos.splice(i,1);renderPhotoGrid('rental-return-photos',rentalReturnPhotos,'addRentalReturnPhoto','removeRentalReturnPhoto');}
 
 function saveHandover(){
   const sel=getSelectedVehicle();
@@ -1516,6 +1620,177 @@ function renderHandoverList(){
 function deleteHandover(id){
   confirmAction('인수인계 기록 삭제','이 기록을 삭제할까요?',()=>{
     LS.saveHandover(LS.handover().filter(h=>h.id!==id));renderHandoverList();toast('삭제됐어요');
+  });
+}
+
+// ════════════════════════════════════════════════
+// RENTAL INSPECTION (business mode)
+// ════════════════════════════════════════════════
+function initRentalPickup(){
+  rentalPickupPhotos=[];
+  selRentalPickupFuel=FUEL_LEVELS[0];
+  const today=new Date().toISOString().split('T')[0];
+  document.getElementById('rental-pickup-date').value=today;
+  document.getElementById('rental-pickup-mileage').value=getSelectedVehicle()?.mileage||'';
+  document.getElementById('rental-pickup-note').value='';
+  renderVehicleChip('rental-vehicle-info',getSelectedVehicle());
+  document.getElementById('rental-pickup-fuel-chips').innerHTML=
+    FUEL_LEVELS.map(f=>`<button class="ch${f===selRentalPickupFuel?' on':''}" onclick="selRentalPickupFuel='${f}';document.querySelectorAll('#rental-pickup-fuel-chips .ch').forEach(b=>b.classList.toggle('on',b.textContent==='${f}'))">${f}</button>`).join('');
+  renderPhotoGrid('rental-pickup-photos',rentalPickupPhotos,'addRentalPickupPhoto','removeRentalPickupPhoto');
+}
+
+function saveRentalPickup(){
+  const sel=getSelectedVehicle();
+  if(!sel){toast('차량을 먼저 등록해주세요');return;}
+  const mileage=parseInt(document.getElementById('rental-pickup-mileage').value);
+  if(!mileage){toast('주행거리를 입력해주세요');return;}
+  const rec={
+    id:uid(),vehicleId:sel.id,ts:new Date().toISOString(),status:'active',
+    pickup:{
+      date:document.getElementById('rental-pickup-date').value,
+      mileage,fuel:selRentalPickupFuel,
+      note:document.getElementById('rental-pickup-note').value.trim()||null,
+      photos:rentalPickupPhotos
+    },
+    ret:null
+  };
+  const rs=LS.rental();rs.unshift(rec);LS.saveRental(rs);
+  curRentalId=rec.id;
+  toast('인수 점검이 저장됐어요');
+  go('rental');renderRentalList();
+}
+
+function initRentalReturn(id){
+  curRentalId=id;
+  rentalReturnPhotos=[];
+  selRentalReturnFuel=FUEL_LEVELS[0];
+  document.getElementById('rental-return-date').value=new Date().toISOString().split('T')[0];
+  document.getElementById('rental-return-mileage').value='';
+  document.getElementById('rental-return-note').value='';
+  document.getElementById('rental-return-fuel-chips').innerHTML=
+    FUEL_LEVELS.map(f=>`<button class="ch${f===selRentalReturnFuel?' on':''}" onclick="selRentalReturnFuel='${f}';document.querySelectorAll('#rental-return-fuel-chips .ch').forEach(b=>b.classList.toggle('on',b.textContent==='${f}'))">${f}</button>`).join('');
+  renderPhotoGrid('rental-return-photos',rentalReturnPhotos,'addRentalReturnPhoto','removeRentalReturnPhoto');
+  go('rental-return');
+}
+
+function saveRentalReturn(){
+  const mileage=parseInt(document.getElementById('rental-return-mileage').value);
+  if(!mileage){toast('주행거리를 입력해주세요');return;}
+  const rs=LS.rental();
+  const idx=rs.findIndex(r=>r.id===curRentalId);
+  if(idx<0){toast('점검 기록을 찾을 수 없어요');return;}
+  rs[idx].status='returned';
+  rs[idx].ret={
+    date:document.getElementById('rental-return-date').value,
+    mileage,fuel:selRentalReturnFuel,
+    note:document.getElementById('rental-return-note').value.trim()||null,
+    photos:rentalReturnPhotos
+  };
+  LS.saveRental(rs);
+  toast('반납 점검이 저장됐어요');
+  renderRentalReport(curRentalId);
+  go('rental-report');
+}
+
+function renderRentalList(){
+  const sel=getSelectedVehicle();
+  const rs=LS.rental().filter(r=>r.vehicleId===sel?.id);
+  const c=document.getElementById('rental-list');
+  if(!c)return;
+  if(!rs.length){
+    c.innerHTML=`<div class="empty">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+      <p>렌트카 점검 기록이 없어요</p>
+    </div>`;
+    return;
+  }
+  c.innerHTML=rs.map(r=>`<div class="lc">
+    <div class="lc-row">
+      <div class="lc-icon" style="background:${r.status==='active'?'var(--ok-s)':'var(--bd)'}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="${r.status==='active'?'var(--ok)':'var(--txm)'}" stroke-width="2"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+      </div>
+      <div class="lc-body">
+        <div class="lc-title">${fmtDate(r.pickup.date)} 인수</div>
+        <div class="lc-sub">${fmtMileage(r.pickup.mileage)} · 연료 ${r.pickup.fuel}</div>
+        <span class="lc-badge" style="background:${r.status==='active'?'var(--ok-s)':'var(--bd)'};color:${r.status==='active'?'var(--ok)':'var(--txm)'}">${r.status==='active'?'운행 중':'반납 완료'}</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;flex-shrink:0">
+        ${r.status==='active'?`<button onclick="initRentalReturn('${r.id}')" style="background:var(--warn-s);color:var(--warn);border-radius:8px;padding:5px 10px;font-size:12px;font-weight:700;white-space:nowrap">반납 처리</button>`:''}
+        <button onclick="renderRentalReport('${r.id}');go('rental-report')" style="background:var(--pr-s);color:var(--pr);border-radius:8px;padding:5px 10px;font-size:12px;font-weight:700">리포트</button>
+        <button onclick="deleteRental('${r.id}')" style="color:var(--txm);padding:2px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>`).join('');
+}
+
+function renderRentalReport(id){
+  const rs=LS.rental();
+  const r=rs.find(r=>r.id===id);
+  if(!r)return;
+  curRentalId=id;
+  const sel=LS.vehicles().find(v=>v.id===r.vehicleId);
+  const c=document.getElementById('rental-report-content');
+  if(!c)return;
+
+  const diffKm=r.ret?r.ret.mileage-r.pickup.mileage:null;
+  const photosRow=(photos,label)=>photos?.length
+    ?`<p class="sec">${label} (${photos.length}장)</p><div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px">${photos.map(p=>`<img src="${p}" onclick="openLightbox('${p}')" style="width:76px;height:76px;object-fit:cover;border-radius:8px;cursor:zoom-in">`).join('')}</div>`
+    :`<p class="sec">${label}</p><p style="font-size:13px;color:var(--txm);margin-bottom:16px">사진 없음</p>`;
+
+  c.innerHTML=`
+    <div style="text-align:center;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--bd)">
+      <div style="font-size:12px;color:var(--txm);margin-bottom:4px">차량기록 · 렌트카 점검 리포트</div>
+      <div style="font-size:20px;font-weight:800">${sel?.name||'차량'}</div>
+      <div style="font-size:14px;font-weight:600;letter-spacing:2px;color:var(--tx2)">${sel?.plate||''}</div>
+      <div style="font-size:13px;color:var(--txm)">${sel?.make||''} ${sel?.model||''}</div>
+    </div>
+
+    <div class="rent-cmp">
+      <div class="rent-col">
+        <div class="rent-col-hd pk">▲ 인수</div>
+        <div class="rent-row"><span class="rl">날짜</span><span class="rv">${fmtDate(r.pickup.date)}</span></div>
+        <div class="rent-row"><span class="rl">주행거리</span><span class="rv">${fmtMileage(r.pickup.mileage)}</span></div>
+        <div class="rent-row"><span class="rl">연료</span><span class="rv">${r.pickup.fuel}</span></div>
+        ${r.pickup.note?`<div class="rent-row"><span class="rl">특이사항</span><span class="rv">${r.pickup.note}</span></div>`:''}
+      </div>
+      <div class="rent-col">
+        <div class="rent-col-hd rt">▼ 반납</div>
+        ${r.ret?`
+        <div class="rent-row"><span class="rl">날짜</span><span class="rv">${fmtDate(r.ret.date)}</span></div>
+        <div class="rent-row"><span class="rl">주행거리</span><span class="rv">${fmtMileage(r.ret.mileage)}</span></div>
+        <div class="rent-row"><span class="rl">연료</span><span class="rv">${r.ret.fuel}</span></div>
+        ${r.ret.note?`<div class="rent-row"><span class="rl">특이사항</span><span class="rv">${r.ret.note}</span></div>`:''}`
+        :`<div style="font-size:13px;color:var(--txm);padding:8px 0">미반납</div>`}
+      </div>
+    </div>
+
+    ${diffKm!==null?`<div class="lc" style="margin-bottom:16px;padding:14px 16px">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:14px;font-weight:600">총 운행거리</span>
+        <span style="font-size:20px;font-weight:800;color:var(--pr)">${diffKm.toLocaleString('ko-KR')} km</span>
+      </div>
+    </div>`:''}
+
+    ${photosRow(r.pickup.photos,'인수 시 외관 사진')}
+    ${r.ret?photosRow(r.ret.photos,'반납 시 외관 사진'):''}
+  `;
+}
+
+function printRentalReport(){
+  const rs=LS.rental();
+  const r=rs.find(r=>r.id===curRentalId);
+  const sel=LS.vehicles().find(v=>v.id===r?.vehicleId);
+  const prev=document.title;
+  document.title=`CarLog-렌트카-${sel?.plate||''}-${r?.pickup?.date||''}`;
+  window.print();
+  window.addEventListener('afterprint',()=>{document.title=prev},{once:true});
+}
+
+function deleteRental(id){
+  confirmAction('렌트카 점검 삭제','이 점검 기록을 삭제할까요?',()=>{
+    LS.saveRental(LS.rental().filter(r=>r.id!==id));renderRentalList();toast('삭제됐어요');
   });
 }
 
@@ -1680,7 +1955,7 @@ function exportData(){
     app:'CarLog',schemaVersion:1,exportedAt:new Date().toISOString(),
     state:{
       car_v:LS.vehicles(),car_p:LS.parking(),car_m:LS.maintenance(),
-      car_a:LS.accident(),car_s:LS.status(),car_h:LS.handover(),car_cfg:LS.cfg()
+      car_a:LS.accident(),car_s:LS.status(),car_h:LS.handover(),car_r:LS.rental(),car_cfg:LS.cfg()
     }
   };
   const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
@@ -1706,6 +1981,7 @@ function importData(e){
       if(s.car_a)save('car_a',s.car_a);
       if(s.car_s)save('car_s',s.car_s);
       if(s.car_h)save('car_h',s.car_h);
+      if(s.car_r)save('car_r',s.car_r);
       if(s.car_cfg)save('car_cfg',s.car_cfg);
       toast('복원 완료! 앱을 새로고침합니다');
       setTimeout(()=>location.reload(),1200);
@@ -1758,6 +2034,7 @@ window.go=function(view){
   if(view==='handover')renderHandoverList();
   if(view==='status-list')renderStatusList();
   if(view==='timeline')renderTimeline();
+  if(view==='rental')renderRentalList();
   if(view!=='onboarding'){
     document.querySelector('.bnav').style.display='';
   }
