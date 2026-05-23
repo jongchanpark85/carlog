@@ -226,6 +226,19 @@ select.fi{-webkit-appearance:none;appearance:none;background-image:url("data:ima
 #update-banner.show{transform:translateY(0)}
 /* ── Toast ──────────────────────────────────────── */
 #toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:var(--tx);color:var(--bg);padding:10px 20px;border-radius:20px;font-size:13px;font-weight:600;z-index:999;display:none;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.2)}
+/* ── Checklist ───────────────────────────────────── */
+.chk-sec{margin-bottom:16px}
+.chk-sec-hd{font-size:12px;font-weight:700;color:var(--tx2);letter-spacing:.04em;padding:4px 0 6px;border-bottom:2px solid var(--pr-s)}
+.chk-item{display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid var(--bd)}
+.chk-item:last-child{border-bottom:none}
+.chk-label{flex:1;font-size:13px}
+.chk-btns{display:flex;gap:4px}
+.chk-btn{border:1.5px solid var(--bd2);border-radius:6px;padding:4px 9px;font-size:11px;font-weight:700;color:var(--txm);background:transparent;white-space:nowrap}
+.chk-btn.sel-good{border-color:var(--ok);background:var(--ok-s);color:var(--ok)}
+.chk-btn.sel-minor{border-color:var(--warn);background:var(--warn-s);color:var(--warn)}
+.chk-btn.sel-damage{border-color:var(--dng);background:var(--dng-s);color:var(--dng)}
+.chk-summary{display:flex;gap:8px;justify-content:center;margin-bottom:20px}
+.chk-sum-box{text-align:center;padding:12px 16px;border-radius:var(--rs);min-width:60px}
 /* ── Rental ─────────────────────────────────────── */
 .rent-cmp{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
 .rent-col{background:var(--card);border:1px solid var(--bd);border-radius:var(--r);padding:14px}
@@ -734,6 +747,61 @@ select.fi{-webkit-appearance:none;appearance:none;background-image:url("data:ima
     </button>
   </div>
 
+  <!-- CHECKLIST LIST -->
+  <div id="v-checklist" class="view">
+    <button class="back" onclick="go('home')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><path d="M15 18l-6-6 6-6"/></svg>
+      홈
+    </button>
+    <div class="ab">
+      <h1>외관 체크리스트</h1>
+      <button class="ib" onclick="initChecklistForm();go('checklist-add')" title="새 점검">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+      </button>
+    </div>
+    <div id="checklist-list"></div>
+  </div>
+
+  <!-- CHECKLIST ADD -->
+  <div id="v-checklist-add" class="view">
+    <button class="back" onclick="go('checklist')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><path d="M15 18l-6-6 6-6"/></svg>
+      뒤로
+    </button>
+    <div class="ab">
+      <h1>외관 체크리스트</h1>
+      <button style="display:flex;align-items:center;padding:0 14px;height:36px;border-radius:8px;background:var(--pr);color:#fff;font-weight:700;font-size:13px" onclick="saveChecklist()">저장</button>
+    </div>
+    <div id="chk-vehicle-info"></div>
+    <div class="fg"><label>제목 <span style="font-weight:400;color:var(--txm)">(선택)</span></label><input id="chk-title" class="fi" placeholder="예: 2024-01 렌트 인수 전 점검"></div>
+    <div id="checklist-items"></div>
+    <p class="sec" style="margin-top:16px">사진 <span style="font-weight:400;font-size:13px;color:var(--txm)">(선택)</span></p>
+    <div id="chk-photos" class="pgrid"></div>
+    <p class="sec" style="margin-top:16px">메모 <span style="font-weight:400;font-size:13px;color:var(--txm)">(선택)</span></p>
+    <textarea id="chk-memo" class="fi" rows="3" placeholder="추가 메모를 입력하세요"></textarea>
+  </div>
+
+  <!-- CHECKLIST REPORT -->
+  <div id="v-checklist-report" class="view">
+    <div class="no-print">
+      <button class="back" onclick="go('checklist')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><path d="M15 18l-6-6 6-6"/></svg>
+        목록
+      </button>
+      <div class="ab">
+        <h1>점검 리포트</h1>
+        <button class="ib" onclick="printChecklistReport()" title="PDF 출력">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+        </button>
+      </div>
+    </div>
+    <div id="checklist-report-content"></div>
+    <button class="btn btn-pr no-print" onclick="printChecklistReport()" style="margin-top:8px">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+      PDF 출력
+    </button>
+  </div>
+
   <!-- TIMELINE -->
   <div id="v-timeline" class="view">
     <button class="back" onclick="go('home')">
@@ -781,6 +849,14 @@ const MAINT_TYPES = ['엔진오일 교체','타이어 교체','타이어 로테�
   '에어필터 교체','브레이크 패드 교체','냉각수 교체','자동차 검사','기타 정비'];
 const STATUS_CATS = ['긁힘/찌그러짐','경고등 점등','타이어 이상','유리/외관 파손','기타'];
 const PURPOSES = [{v:'work',l:'업무'},{v:'personal',l:'개인'}];
+const CHECKLIST_SECTIONS=[
+  {key:'front',label:'전면',items:['범퍼','본넷','헤드라이트','윈드실드']},
+  {key:'right',label:'우측',items:['앞 펜더','앞문','뒷문','사이드미러']},
+  {key:'rear', label:'후면',items:['범퍼','트렁크','후미등','리어 글라스']},
+  {key:'left', label:'좌측',items:['앞 펜더','앞문','뒷문','사이드미러']},
+  {key:'etc',  label:'기타',items:['루프','앞타이어(좌)','앞타이어(우)','뒤타이어(좌)','뒤타이어(우)']},
+];
+const CHK_STATUS=[{v:'good',l:'양호'},{v:'minor',l:'경미'},{v:'damage',l:'손상'}];
 const HANDOVER_TYPES = ['인수 (차량 받음)','반납 (차량 돌려줌)'];
 const FUEL_LEVELS = ['F (가득)','3/4','1/2','1/4','E (부족)'];
 const MAX_PHOTOS = 8;
@@ -810,6 +886,8 @@ const LS={
   saveHandover(v){save('car_h',v)},
   rental:()=>load('car_r'),
   saveRental(v){save('car_r',v)},
+  checklists:()=>load('car_chk'),
+  saveChecklists(v){save('car_chk',v)},
 };
 
 // ════════════════════════════════════════════════
@@ -824,6 +902,7 @@ let accPhotos=[],accLat=null,accLng=null,accAddr=null;
 let maintPhotos=[],statusPhotos=[],selStatusCat=STATUS_CATS[0];
 let handoverPhotos=[],selHandoverType=HANDOVER_TYPES[0],selFuel=FUEL_LEVELS[0];
 let rentalPickupPhotos=[],rentalReturnPhotos=[],selRentalPickupFuel=FUEL_LEVELS[0],selRentalReturnFuel=FUEL_LEVELS[0],curRentalId=null;
+let chkItems={},chkPhotos=[],curChkId=null;
 
 // ════════════════════════════════════════════════
 // UTILS
@@ -1069,6 +1148,10 @@ function renderHome(){
     <button class="qb" style="color:var(--warn)" onclick="go('timeline')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
       타임라인
+    </button>
+    <button class="qb" style="color:var(--ok)" onclick="go('checklist')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      외관 체크
     </button>
     ${isBiz?`
     <button class="qb" style="color:var(--tl)" onclick="go('drivelog');renderDriveLog()">
@@ -1564,6 +1647,8 @@ function initHandoverForm(){
 
 function addHandoverPhoto(d){handoverPhotos.push(d);renderPhotoGrid('handover-photos',handoverPhotos,'addHandoverPhoto','removeHandoverPhoto');}
 function removeHandoverPhoto(i){handoverPhotos.splice(i,1);renderPhotoGrid('handover-photos',handoverPhotos,'addHandoverPhoto','removeHandoverPhoto');}
+function addChkPhoto(d){chkPhotos.push(d);renderPhotoGrid('chk-photos',chkPhotos,'addChkPhoto','removeChkPhoto');}
+function removeChkPhoto(i){chkPhotos.splice(i,1);renderPhotoGrid('chk-photos',chkPhotos,'addChkPhoto','removeChkPhoto');}
 function addRentalPickupPhoto(d){rentalPickupPhotos.push(d);renderPhotoGrid('rental-pickup-photos',rentalPickupPhotos,'addRentalPickupPhoto','removeRentalPickupPhoto');}
 function removeRentalPickupPhoto(i){rentalPickupPhotos.splice(i,1);renderPhotoGrid('rental-pickup-photos',rentalPickupPhotos,'addRentalPickupPhoto','removeRentalPickupPhoto');}
 function addRentalReturnPhoto(d){rentalReturnPhotos.push(d);renderPhotoGrid('rental-return-photos',rentalReturnPhotos,'addRentalReturnPhoto','removeRentalReturnPhoto');}
@@ -1795,6 +1880,159 @@ function deleteRental(id){
 }
 
 // ════════════════════════════════════════════════
+// EXTERIOR CHECKLIST
+// ════════════════════════════════════════════════
+function initChecklistForm(){
+  chkItems={};chkPhotos=[];curChkId=null;
+  document.getElementById('chk-title').value='';
+  document.getElementById('chk-memo').value='';
+  renderVehicleChip('chk-vehicle-info',getSelectedVehicle());
+  renderChecklistItems();
+  renderPhotoGrid('chk-photos',chkPhotos,'addChkPhoto','removeChkPhoto');
+}
+
+function setChkItem(sectionKey,itemIdx,status){
+  chkItems[sectionKey+'_'+itemIdx]=status;
+  renderChecklistItems();
+}
+
+function renderChecklistItems(){
+  const c=document.getElementById('checklist-items');if(!c)return;
+  c.innerHTML=CHECKLIST_SECTIONS.map(sec=>`<div class="chk-sec">
+    <div class="chk-sec-hd">${sec.label}</div>
+    ${sec.items.map((item,i)=>`<div class="chk-item">
+      <span class="chk-label">${item}</span>
+      <div class="chk-btns">${CHK_STATUS.map(s=>`<button class="chk-btn ${chkItems[sec.key+'_'+i]===s.v?'sel-'+s.v:''}" onclick="setChkItem('${sec.key}',${i},'${s.v}')">${s.l}</button>`).join('')}</div>
+    </div>`).join('')}
+  </div>`).join('');
+}
+
+function saveChecklist(){
+  const sel=getSelectedVehicle();
+  if(!sel){toast('차량을 먼저 등록해주세요');return;}
+  const rec={
+    id:uid(),vehicleId:sel.id,ts:new Date().toISOString(),
+    title:document.getElementById('chk-title').value.trim()||null,
+    items:{...chkItems},
+    photos:chkPhotos,
+    memo:document.getElementById('chk-memo').value.trim()||null
+  };
+  const cs=LS.checklists();cs.unshift(rec);LS.saveChecklists(cs);
+  curChkId=rec.id;
+  toast('체크리스트가 저장됐어요');
+  renderChecklistReport(rec.id);
+  go('checklist-report');
+}
+
+function renderChecklistList(){
+  const sel=getSelectedVehicle();
+  const cs=LS.checklists().filter(c=>c.vehicleId===sel?.id);
+  const c=document.getElementById('checklist-list');if(!c)return;
+  if(!cs.length){
+    c.innerHTML=`<div class="empty">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      <p>외관 체크리스트가 없어요</p>
+    </div>`;
+    return;
+  }
+  const totalItems=CHECKLIST_SECTIONS.reduce((s,sec)=>s+sec.items.length,0);
+  c.innerHTML=cs.map(r=>{
+    const vals=Object.values(r.items||{});
+    const goodCnt=vals.filter(v=>v==='good').length;
+    const minorCnt=vals.filter(v=>v==='minor').length;
+    const damageCnt=vals.filter(v=>v==='damage').length;
+    const hasIssue=damageCnt>0;const hasMinor=minorCnt>0;
+    return`<div class="lc">
+      <div class="lc-row">
+        <div class="lc-icon" style="background:${hasIssue?'var(--dng-s)':hasMinor?'var(--warn-s)':'var(--ok-s)'}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="${hasIssue?'var(--dng)':hasMinor?'var(--warn)':'var(--ok)'}" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        </div>
+        <div class="lc-body">
+          <div class="lc-title">${r.title||fmtDate(r.ts)+' 점검'}</div>
+          <div class="lc-sub">${fmtDate(r.ts)} ${fmtTime(r.ts)}</div>
+          ${vals.length?`<div class="lc-extra">
+            <span style="color:var(--ok)">양호 ${goodCnt}</span>
+            <span style="color:var(--warn)">경미 ${minorCnt}</span>
+            <span style="color:var(--dng)">손상 ${damageCnt}</span>
+            <span style="color:var(--txm)">미체크 ${totalItems-vals.length}</span>
+          </div>`:''}
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;flex-shrink:0">
+          <button onclick="openChecklistReport('${r.id}')" style="background:var(--pr-s);color:var(--pr);border-radius:8px;padding:5px 10px;font-size:12px;font-weight:700">리포트</button>
+          <button onclick="deleteChecklist('${r.id}')" style="color:var(--txm);padding:2px">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openChecklistReport(id){
+  curChkId=id;
+  renderChecklistReport(id);
+  go('checklist-report');
+}
+
+function renderChecklistReport(id){
+  const cs=LS.checklists();
+  const r=cs.find(c=>c.id===id);if(!r)return;
+  curChkId=id;
+  const sel=LS.vehicles().find(v=>v.id===r.vehicleId);
+  const c=document.getElementById('checklist-report-content');if(!c)return;
+
+  const vals=Object.values(r.items||{});
+  const goodCnt=vals.filter(v=>v==='good').length;
+  const minorCnt=vals.filter(v=>v==='minor').length;
+  const damageCnt=vals.filter(v=>v==='damage').length;
+  const totalItems=CHECKLIST_SECTIONS.reduce((s,sec)=>s+sec.items.length,0);
+  const sBg=s=>s==='good'?'var(--ok-s)':s==='minor'?'var(--warn-s)':s==='damage'?'var(--dng-s)':'var(--bd)';
+  const sColor=s=>s==='good'?'var(--ok)':s==='minor'?'var(--warn)':s==='damage'?'var(--dng)':'var(--txm)';
+  const sLabel=s=>CHK_STATUS.find(x=>x.v===s)?.l||'미체크';
+
+  c.innerHTML=`
+    <div style="text-align:center;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--bd)">
+      <div style="font-size:12px;color:var(--txm);margin-bottom:4px">차량기록 · 외관 체크리스트</div>
+      <div style="font-size:20px;font-weight:800">${sel?.name||'차량'}</div>
+      <div style="font-size:14px;font-weight:600;letter-spacing:2px;color:var(--tx2)">${sel?.plate||''}</div>
+      <div style="font-size:13px;color:var(--txm)">${fmtDate(r.ts)}${r.title?' · '+r.title:''}</div>
+    </div>
+    <div class="chk-summary">
+      <div class="chk-sum-box" style="background:var(--ok-s)"><div style="font-size:22px;font-weight:800;color:var(--ok)">${goodCnt}</div><div style="font-size:11px;color:var(--ok);font-weight:600">양호</div></div>
+      <div class="chk-sum-box" style="background:var(--warn-s)"><div style="font-size:22px;font-weight:800;color:var(--warn)">${minorCnt}</div><div style="font-size:11px;color:var(--warn);font-weight:600">경미</div></div>
+      <div class="chk-sum-box" style="background:var(--dng-s)"><div style="font-size:22px;font-weight:800;color:var(--dng)">${damageCnt}</div><div style="font-size:11px;color:var(--dng);font-weight:600">손상</div></div>
+      <div class="chk-sum-box" style="background:var(--bd)"><div style="font-size:22px;font-weight:800;color:var(--txm)">${totalItems-vals.length}</div><div style="font-size:11px;color:var(--txm);font-weight:600">미체크</div></div>
+    </div>
+    ${CHECKLIST_SECTIONS.map(sec=>`<div class="chk-sec">
+      <div class="chk-sec-hd">${sec.label}</div>
+      ${sec.items.map((item,i)=>{const st=r.items[sec.key+'_'+i]||null;return`<div class="chk-item">
+        <span class="chk-label">${item}</span>
+        <span style="font-size:11px;font-weight:700;padding:3px 9px;border-radius:6px;background:${sBg(st)};color:${sColor(st)}">${sLabel(st)}</span>
+      </div>`;}).join('')}
+    </div>`).join('')}
+    ${r.memo?`<p class="sec" style="margin-top:16px">메모</p><p style="font-size:13px;color:var(--tx2);margin-bottom:16px">${r.memo}</p>`:''}
+    ${r.photos?.length?`<p class="sec" style="margin-top:16px">사진 (${r.photos.length}장)</p>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px">${r.photos.map(p=>`<img src="${p}" onclick="openLightbox('${p}')" style="width:76px;height:76px;object-fit:cover;border-radius:8px;cursor:zoom-in">`).join('')}</div>`:''}
+  `;
+}
+
+function printChecklistReport(){
+  const cs=LS.checklists();
+  const r=cs.find(c=>c.id===curChkId);
+  const sel=LS.vehicles().find(v=>v.id===r?.vehicleId);
+  const prev=document.title;
+  document.title=`CarLog-외관체크-${sel?.plate||''}-${r?.ts?.split('T')[0]||''}`;
+  window.print();
+  window.addEventListener('afterprint',()=>{document.title=prev},{once:true});
+}
+
+function deleteChecklist(id){
+  confirmAction('체크리스트 삭제','이 체크리스트를 삭제할까요?',()=>{
+    LS.saveChecklists(LS.checklists().filter(c=>c.id!==id));renderChecklistList();toast('삭제됐어요');
+  });
+}
+
+// ════════════════════════════════════════════════
 // MODE / SETTINGS
 // ════════════════════════════════════════════════
 function selectMode(mode){
@@ -1955,7 +2193,7 @@ function exportData(){
     app:'CarLog',schemaVersion:1,exportedAt:new Date().toISOString(),
     state:{
       car_v:LS.vehicles(),car_p:LS.parking(),car_m:LS.maintenance(),
-      car_a:LS.accident(),car_s:LS.status(),car_h:LS.handover(),car_r:LS.rental(),car_cfg:LS.cfg()
+      car_a:LS.accident(),car_s:LS.status(),car_h:LS.handover(),car_r:LS.rental(),car_chk:LS.checklists(),car_cfg:LS.cfg()
     }
   };
   const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
@@ -1982,6 +2220,7 @@ function importData(e){
       if(s.car_s)save('car_s',s.car_s);
       if(s.car_h)save('car_h',s.car_h);
       if(s.car_r)save('car_r',s.car_r);
+      if(s.car_chk)save('car_chk',s.car_chk);
       if(s.car_cfg)save('car_cfg',s.car_cfg);
       toast('복원 완료! 앱을 새로고침합니다');
       setTimeout(()=>location.reload(),1200);
@@ -2035,6 +2274,7 @@ window.go=function(view){
   if(view==='status-list')renderStatusList();
   if(view==='timeline')renderTimeline();
   if(view==='rental')renderRentalList();
+  if(view==='checklist')renderChecklistList();
   if(view!=='onboarding'){
     document.querySelector('.bnav').style.display='';
   }
