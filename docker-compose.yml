@@ -1,0 +1,37 @@
+# INO Project — local dev / NAS deployment.
+# In production (GCP Cloud Run, AWS ECS/App Runner) the same image is used,
+# but PORT is provided by the platform and no compose file is needed.
+
+services:
+  ino:
+    build: .
+    image: ino-project:local
+    container_name: ino
+    restart: unless-stopped
+    environment:
+      # Container listens on $PORT. 3403 is the project's canonical port.
+      PORT: 3403
+      TZ: Asia/Seoul
+    ports:
+      # Host:Container — same port both sides for clarity.
+      - "3403:3403"
+    volumes:
+      # NAS 운영 편의: 디스크의 app/이 곧 서빙 대상이라
+      # `git pull` 후 `docker restart`만으로 새 코드가 반영됨 (이미지 재빌드 불필요).
+      # 클라우드(Cloud Run/App Runner)는 이 compose 파일을 쓰지 않고
+      # Dockerfile의 COPY로 자체 완결 이미지를 빌드한다.
+      - ./app:/usr/share/nginx/html:ro
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:3403/healthz"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+    # NOTE: Synology DSM kernels often lack the CPU CFS scheduler, so `cpus:`
+    # is omitted. `read_only: true` + tmpfs is also omitted because the
+    # entrypoint must write the rendered nginx.conf to /etc/nginx/conf.d/
+    # at start; on a read-only root filesystem this fails and the container
+    # crash-loops. Memory cap is enough for a static site.
+    mem_limit: 128m
+    security_opt:
+      - no-new-privileges:true

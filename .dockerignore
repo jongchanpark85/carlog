@@ -1,0 +1,30 @@
+# INO Project — keep build context small.
+
+.git/
+.gitignore
+.github/
+.idea/
+.vscode/
+
+# Claude / agents
+.claude/
+CLAUDE.md
+
+# Project docs (not needed inside the image).
+docs/
+README.md
+*.md
+
+# Local launchers / sync scripts (host-only).
+.claude_launcher.bat
+.claude_launcher.ps1
+.sync-github.bat
+.sync-github.ps1
+
+# Build / OS junk
+Thumbs.db
+.DS_Store
+*.log
+
+# Source spreadsheet (replaced by docs/*.md).
+*.xlsx

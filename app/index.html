@@ -1,0 +1,1675 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>차량기록</title>
+<link rel="icon" type="image/png" href="/icon-192.png">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#1a3c6e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="차량기록">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<style>
+/* ── Tokens ─────────────────────────────────────── */
+:root {
+  --pr:#1a3c6e;--pr-l:#2e5da8;--pr-s:rgba(26,60,110,.08);
+  --dng:#dc2626;--dng-s:#fee2e2;
+  --ok:#16a34a;--ok-s:#dcfce7;
+  --warn:#d97706;--warn-s:#fef3c7;
+  --pu:#7c3aed;--pu-s:rgba(124,58,237,.08);
+  --tl:#0e7490;--tl-s:rgba(14,116,144,.08);
+  --bg:#f8fafc;--sf:#fff;--card:#fff;
+  --bd:#e2e8f0;--bd2:#cbd5e1;
+  --tx:#0f172a;--tx2:#475569;--txm:#94a3b8;
+  --nav:#fff;--r:14px;--rs:8px;--nh:60px;
+  --font:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+}
+[data-theme=dark]{
+  --bg:#0f172a;--sf:#1e293b;--card:#1e293b;
+  --bd:#1e293b;--bd2:#334155;
+  --tx:#f1f5f9;--tx2:#94a3b8;--txm:#475569;--nav:#1e293b;
+  --pr-s:rgba(46,93,168,.15);--pu-s:rgba(124,58,237,.12);
+}
+/* ── Reset ──────────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);color:var(--tx);font-family:var(--font);font-size:15px;-webkit-tap-highlight-color:transparent}
+input,select,textarea,button{font:inherit;color:inherit}
+img{display:block;max-width:100%}
+button{cursor:pointer;border:none;background:none}
+/* ── App shell ──────────────────────────────────── */
+#app{position:fixed;inset:0;bottom:calc(var(--nh) + env(safe-area-inset-bottom));overflow-y:auto;-webkit-overflow-scrolling:touch}
+.view{display:none;padding:12px 16px 80px;animation:fi .15s ease}
+.view.active{display:block}
+@keyframes fi{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+/* ── Bottom nav ─────────────────────────────────── */
+.bnav{position:fixed;bottom:0;left:0;right:0;height:calc(var(--nh) + env(safe-area-inset-bottom));background:var(--nav);border-top:1px solid var(--bd);display:flex;align-items:flex-start;padding-top:6px;z-index:100}
+.nb{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 2px;color:var(--txm);font-size:10px;font-weight:600}
+.nb.on{color:var(--pr)}
+.nb svg{width:22px;height:22px}
+/* ── FAB ────────────────────────────────────────── */
+#fab{position:fixed;bottom:calc(var(--nh)+16px+env(safe-area-inset-bottom));right:16px;background:var(--dng);color:#fff;border-radius:50px;height:44px;padding:0 16px;display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;box-shadow:0 4px 16px rgba(220,38,38,.4);z-index:99;transition:transform .1s}
+#fab:active{transform:scale(.95)}
+#fab.hide{display:none}
+/* ── Appbar ─────────────────────────────────────── */
+.ab{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.ab h1{font-size:20px;font-weight:800;letter-spacing:-.3px}
+.ab-row{display:flex;gap:4px}
+.ib{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--tx2)}
+.ib:active{background:var(--bd)}
+.back{display:flex;align-items:center;gap:6px;font-size:15px;color:var(--pr);font-weight:600;margin-bottom:16px;padding:4px 0}
+/* ── Section ────────────────────────────────────── */
+.sec{font-size:15px;font-weight:700;margin:20px 0 12px}
+.sec:first-child{margin-top:0}
+/* ── Vehicle card ───────────────────────────────── */
+.vc{background:var(--pr);border-radius:var(--r);padding:16px;color:#fff;cursor:pointer;user-select:none}
+.vc h2{font-size:20px;font-weight:800}
+.vc .s1{color:rgba(255,255,255,.7);font-size:13px;margin-top:2px}
+.vc .s2{font-size:13px;color:rgba(255,255,255,.7);margin-top:6px}
+.vc .swap{margin-left:auto;opacity:.7}
+/* ── Quick actions ──────────────────────────────── */
+.qg{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+.qb{background:var(--card);border:1px solid var(--bd);border-radius:var(--r);padding:14px 8px;display:flex;flex-direction:column;align-items:center;gap:8px;font-size:12px;font-weight:600;transition:opacity .1s}
+.qb:active{opacity:.65}
+.qb svg{width:28px;height:28px}
+/* ── Parking banner ─────────────────────────────── */
+.pb{background:var(--ok-s);border:1px solid rgba(22,163,74,.2);border-radius:var(--rs);padding:12px 14px;display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.pb .pi{flex:1;min-width:0}
+.pb .pl{font-size:13px;font-weight:600;color:var(--ok);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pb .pt{font-size:11px;color:var(--txm)}
+.pb .ex{background:var(--ok);color:#fff;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;white-space:nowrap;flex-shrink:0}
+/* ── Record tile ────────────────────────────────── */
+.rt{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--bd)}
+.rt:last-child{border-bottom:none}
+.ri{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ri svg{width:18px;height:18px}
+.rinfo{flex:1;min-width:0}
+.rinfo .rt1{font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rinfo .rs{font-size:12px;color:var(--txm)}
+.rbadge{font-size:10px;font-weight:700;border-radius:6px;padding:2px 7px;white-space:nowrap}
+/* ── Empty state ────────────────────────────────── */
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 0;gap:10px;color:var(--txm);text-align:center}
+.empty svg{width:48px;height:48px;opacity:.35}
+.empty p{font-size:14px}
+/* ── Forms ──────────────────────────────────────── */
+.fg{margin-bottom:12px}
+.fg label{display:block;font-size:13px;font-weight:600;color:var(--tx2);margin-bottom:5px}
+.fi{width:100%;background:var(--sf);border:1.5px solid var(--bd2);border-radius:10px;padding:12px 14px;font-size:15px;outline:none;transition:border-color .15s;color:var(--tx)}
+.fi:focus{border-color:var(--pr)}
+textarea.fi{resize:none}
+select.fi{-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:36px}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+/* ── Chips ──────────────────────────────────────── */
+.cg{display:flex;flex-wrap:wrap;gap:8px}
+.ch{background:var(--sf);border:1.5px solid var(--bd2);border-radius:20px;padding:6px 14px;font-size:13px;font-weight:600;cursor:pointer;color:var(--tx2)}
+.ch.on{border-color:var(--pr);background:var(--pr);color:#fff}
+.ch.pu.on{border-color:var(--pu);background:var(--pu)}
+/* ── Mode onboarding ────────────────────────────── */
+.mode-card{background:var(--card);border:2px solid var(--bd);border-radius:var(--r);padding:26px 14px;text-align:center;flex:1;cursor:pointer;transition:border-color .15s,background .15s}
+.mode-card:active{border-color:var(--pr);background:var(--pr-s)}
+.mode-card svg{width:44px;height:44px;margin:0 auto 10px;color:var(--pr)}
+.mode-card h3{font-size:18px;font-weight:800;margin-bottom:6px}
+.mode-card p{font-size:12px;color:var(--tx2);line-height:1.6}
+/* ── Mode badge ─────────────────────────────────── */
+.mbadge{background:var(--pr);color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:5px;margin-left:8px;vertical-align:middle;letter-spacing:.03em;display:none}
+/* ── Settings rows ──────────────────────────────── */
+.srow{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--bd)}
+.srow:last-child{border-bottom:none}
+.srow .sl{font-size:15px;font-weight:600}
+.srow .sv{font-size:13px;color:var(--txm)}
+.srow .sbtn{background:var(--pr-s);color:var(--pr);border:1px solid rgba(26,60,110,.15);border-radius:8px;padding:6px 14px;font-size:13px;font-weight:700}
+/* ── Drive log ──────────────────────────────────── */
+.dl-bar{background:var(--card);border:1px solid var(--bd);border-radius:var(--r);padding:14px 16px;margin-bottom:16px}
+.dl-bar-track{height:8px;background:var(--bd);border-radius:4px;overflow:hidden;margin:8px 0}
+.dl-bar-fill{height:100%;background:var(--pr);border-radius:4px;transition:width .3s}
+.dl-nums{display:flex;justify-content:space-between;font-size:12px}
+.dl-nums .wk{color:var(--pr);font-weight:700}
+.dl-nums .ps{color:var(--txm)}
+/* ── Purpose badge ──────────────────────────────── */
+.pur-w{background:rgba(26,60,110,.1);color:var(--pr)}
+.pur-p{background:var(--bd);color:var(--tx2)}
+/* ── Photos ─────────────────────────────────────── */
+.pgrid{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.pth{position:relative;width:80px;height:80px;border-radius:10px;overflow:hidden;flex-shrink:0}
+.pth img{width:100%;height:100%;object-fit:cover;cursor:zoom-in}
+.pth .del{position:absolute;top:3px;right:3px;background:rgba(0,0,0,.55);border-radius:6px;width:20px;height:20px;display:flex;align-items:center;justify-content:center}
+.pth .del svg{width:12px;height:12px;color:#fff;stroke:currentColor;stroke-width:2.5}
+.padd{width:80px;height:80px;border:2px dashed var(--bd2);border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:10px;font-weight:600;color:var(--txm);cursor:pointer}
+.padd:active{opacity:.7}
+.padd svg{width:22px;height:22px}
+/* ── Location ───────────────────────────────────── */
+.lrow{background:var(--sf);border:1.5px solid var(--bd2);border-radius:10px;padding:12px 14px;display:flex;align-items:center;gap:10px;font-size:13px;color:var(--tx2);margin-bottom:12px}
+.lrow svg{flex-shrink:0;width:18px;height:18px;color:var(--pr)}
+.lrow .lt{flex:1}
+.spin{width:14px;height:14px;border:2px solid var(--bd2);border-top-color:var(--pr);border-radius:50%;animation:sp .6s linear infinite;flex-shrink:0}
+@keyframes sp{to{transform:rotate(360deg)}}
+/* ── Buttons ────────────────────────────────────── */
+.btn{width:100%;height:50px;border-radius:var(--rs);font-size:16px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity .1s;margin-top:16px}
+.btn:active{opacity:.8}
+.btn-pr{background:var(--pr);color:#fff}
+.btn-dng{background:var(--dng);color:#fff}
+.btn-sm{height:36px;font-size:13px;padding:0 16px;border-radius:8px;width:auto;margin-top:0}
+/* ── Info rows ──────────────────────────────────── */
+.irows{background:var(--card);border:1px solid var(--bd);border-radius:var(--r)}
+.irow{display:flex;align-items:center;padding:12px 16px;gap:10px}
+.irow+.irow{border-top:1px solid var(--bd)}
+.irow svg{width:16px;height:16px;color:var(--txm);flex-shrink:0}
+.irow .lb{font-size:13px;color:var(--txm);flex:1}
+.irow .vl{font-size:13px;font-weight:600}
+.irow .vl.dng{color:var(--dng)}
+/* ── Alert ──────────────────────────────────────── */
+.ab2{background:var(--warn-s);border:1px solid rgba(217,119,6,.2);border-radius:var(--rs);padding:12px 14px;margin-bottom:10px}
+.ab2 .at{font-size:12px;font-weight:700;color:var(--warn);margin-bottom:4px}
+.ab2 .ai{font-size:12px;color:var(--tx2);padding-left:12px}
+/* ── Accident header ────────────────────────────── */
+.ah{background:var(--dng);border-radius:var(--r);padding:16px;color:#fff;margin-bottom:20px}
+.ah h2{font-size:16px;font-weight:700;margin-bottom:6px}
+.ah ol{font-size:13px;color:rgba(255,255,255,.8);padding-left:16px;line-height:1.8}
+/* ── Insurance ──────────────────────────────────── */
+.ins{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--bd)}
+.ins:last-child{border-bottom:none}
+.ins-n{font-size:14px;font-weight:600}
+.ins-p{font-size:14px;font-weight:700;color:var(--pr)}
+/* ── List cards ─────────────────────────────────── */
+.lc{background:var(--card);border:1px solid var(--bd);border-radius:var(--r);padding:14px}
+.lc+.lc{margin-top:8px}
+.lc-row{display:flex;align-items:flex-start;gap:12px}
+.lc-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.lc-icon svg{width:20px;height:20px}
+.lc-body{flex:1;min-width:0}
+.lc-title{font-size:15px;font-weight:700}
+.lc-sub{font-size:13px;color:var(--txm);margin-top:1px}
+.lc-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:6px;margin-top:6px;display:inline-block}
+.lc-extra{font-size:12px;color:var(--tx2);margin-top:6px;display:flex;align-items:center;gap:14px}
+.lc-extra span{display:flex;align-items:center;gap:3px}
+.lc-extra svg{width:12px;height:12px}
+.lc-next{display:inline-block;background:var(--warn-s);color:var(--warn);font-size:11px;font-weight:600;border-radius:6px;padding:2px 8px;margin-top:6px}
+.lc-photos{display:flex;gap:5px;margin-top:10px}
+.lc-photos img{width:60px;height:60px;object-fit:cover;border-radius:7px;cursor:zoom-in}
+/* ── Vehicle list ───────────────────────────────── */
+.v-card{background:var(--card);border:1px solid var(--bd);border-radius:var(--r);padding:14px;display:flex;align-items:center;gap:14px;margin-bottom:8px;cursor:pointer}
+.v-card:active{opacity:.7}
+.v-card .vi{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.v-card .vi svg{width:26px;height:26px}
+.v-card .vb{flex:1;min-width:0}
+.v-card .vn{font-size:16px;font-weight:700}
+.v-card .vs{font-size:13px;color:var(--txm)}
+.v-card.sel .vi{background:var(--pr-s)}
+.v-card.sel .vi svg{color:var(--pr)}
+.v-card.sel .vn{color:var(--pr)}
+/* ── Onboarding ─────────────────────────────────── */
+.ob{background:var(--pr-s);border:1px solid rgba(26,60,110,.12);border-radius:var(--r);padding:28px;text-align:center;margin-top:20px}
+.ob svg{width:48px;height:48px;color:var(--pr);opacity:.5;margin:0 auto 10px}
+.ob h3{font-size:16px;font-weight:700;color:var(--pr);margin-bottom:6px}
+.ob p{font-size:13px;color:var(--tx2);margin-bottom:16px}
+/* ── Modals ─────────────────────────────────────── */
+#v-modal,#confirm-modal,#lightbox{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;display:none;align-items:flex-end}
+#v-modal.open,#confirm-modal.open{display:flex}
+#lightbox{align-items:center;justify-content:center;z-index:600}
+#lightbox.open{display:flex}
+#lightbox img{max-width:100vw;max-height:100vh;object-fit:contain}
+.sheet{background:var(--sf);border-radius:20px 20px 0 0;width:100%;padding:16px 16px calc(16px + env(safe-area-inset-bottom));max-height:70vh;overflow-y:auto}
+.sheet-title{font-size:15px;font-weight:700;margin-bottom:12px;text-align:center}
+.v-item{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--bd);cursor:pointer}
+.v-item:last-child{border-bottom:none}
+.v-item .vn2{font-size:15px;font-weight:600}
+.v-item .vs2{font-size:12px;color:var(--txm)}
+.v-item.sel .vn2{color:var(--pr)}
+#confirm-modal .sheet{border-radius:16px;text-align:center;padding:24px}
+.confirm-sheet h3{font-size:16px;font-weight:700;margin-bottom:8px}
+.confirm-sheet p{font-size:14px;color:var(--tx2);margin-bottom:20px}
+.confirm-btns{display:flex;gap:8px}
+.confirm-btns .btn{flex:1;height:44px;font-size:14px;margin-top:0}
+/* ── Toast ──────────────────────────────────────── */
+#toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:var(--tx);color:var(--bg);padding:10px 20px;border-radius:20px;font-size:13px;font-weight:600;z-index:999;display:none;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.2)}
+</style>
+</head>
+<body>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<!-- Settings modal -->
+<div id="settings-modal" style="position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;display:none;align-items:flex-end" onclick="if(event.target===this)closeSettings()">
+  <div class="sheet">
+    <div class="sheet-title">설정</div>
+    <div class="srow">
+      <span class="sl">사용 모드</span>
+      <button id="mode-toggle-btn" class="sbtn" onclick="toggleMode()"></button>
+    </div>
+    <div class="srow">
+      <span class="sl">테마</span>
+      <button class="sbtn" onclick="toggleTheme()">테마 변경</button>
+    </div>
+    <div class="srow">
+      <span class="sl">데이터 백업</span>
+      <button class="sbtn" onclick="exportData()">내보내기</button>
+    </div>
+    <div class="srow">
+      <span class="sl">데이터 복원</span>
+      <label class="sbtn" style="cursor:pointer">불러오기<input type="file" accept=".json" style="display:none" onchange="importData(event)"></label>
+    </div>
+  </div>
+</div>
+
+<!-- Lightbox -->
+<div id="lightbox" onclick="closeLightbox()"><img id="lb-img" src="" alt=""></div>
+
+<!-- Vehicle picker modal -->
+<div id="v-modal" onclick="if(event.target===this)closeVModal()">
+  <div class="sheet">
+    <div class="sheet-title">차량 선택</div>
+    <div id="v-list"></div>
+  </div>
+</div>
+
+<!-- Confirm modal -->
+<div id="confirm-modal">
+  <div class="sheet confirm-sheet">
+    <h3 id="confirm-title">삭제하시겠어요?</h3>
+    <p id="confirm-msg"></p>
+    <div class="confirm-btns">
+      <button class="btn" style="border:1.5px solid var(--bd2)" onclick="closeConfirm()">취소</button>
+      <button id="confirm-ok" class="btn btn-dng">삭제</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── App ─────────────────────────────────────── -->
+<div id="app">
+
+  <!-- ONBOARDING -->
+  <div id="v-onboarding" class="view">
+    <div style="min-height:calc(100vh - var(--nh));display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 20px">
+      <div style="text-align:center;margin-bottom:32px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="var(--pr)" stroke-width="1.5" width="60" height="60" style="margin:0 auto 16px"><path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v5"/><circle cx="16" cy="19" r="2"/><circle cx="9" cy="19" r="2"/><path d="M16 17H9m7-2H9m-3 0H3"/></svg>
+        <h1 style="font-size:26px;font-weight:800;margin-bottom:8px">차량기록</h1>
+        <p style="font-size:14px;color:var(--tx2)">사용 목적을 선택해주세요</p>
+      </div>
+      <div style="display:flex;gap:12px;width:100%;max-width:380px">
+        <div class="mode-card" onclick="selectMode('personal')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+          <h3>개인용</h3>
+          <p>내 차량 관리<br>가족 공유</p>
+        </div>
+        <div class="mode-card" onclick="selectMode('business')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+          <h3>법인/업무용</h3>
+          <p>운행일지 관리<br>인수인계 기록</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HOME -->
+  <div id="v-home" class="view">
+    <div class="ab">
+      <h1>차량기록<span id="mode-badge" class="mbadge">법인</span></h1>
+      <div class="ab-row">
+        <button class="ib" onclick="toggleTheme()" title="테마">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+        </button>
+        <button class="ib" onclick="openSettings()" title="설정">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </button>
+      </div>
+    </div>
+    <div id="home-content"></div>
+  </div>
+
+  <!-- PARKING RECORD -->
+  <div id="v-parking" class="view">
+    <button class="back" onclick="go('home')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><path d="M15 18l-6-6 6-6"/></svg>
+      뒤로
+    </button>
+    <div class="ab"><h1>주차 기록</h1>
+      <button class="btn-sm btn-pr" style="display:flex;align-items:center;gap:4px;padding:0 14px;height:36px;border-radius:8px;background:var(--pr);color:#fff;font-weight:700;font-size:13px" onclick="saveParking()">저장</button>
+    </div>
+    <div id="parking-vehicle-info"></div>
+    <p class="sec">주차 사진</p>
+    <div id="parking-photos" class="pgrid"></div>
+    <p class="sec">위치</p>
+    <div id="parking-loc" class="lrow"><div class="spin"></div><span class="lt">위치 확인 중...</span></div>
+    <p class="sec">층수 <span style="font-weight:400;font-size:13px;color:var(--txm)">(선택)</span></p>
+    <div id="floor-chips" class="cg"></div>
+    <p class="sec">구역 <span style="font-weight:400;font-size:13px;color:var(--txm)">(선택)</span></p>
+    <input id="zone-input" class="fi" placeholder="A구역, B-23 등" style="margin-bottom:12px">
+    <div id="parking-purpose-section" style="display:none">
+      <p class="sec">운행 목적</p>
+      <div id="purpose-chips" class="cg" style="margin-bottom:12px"></div>
+    </div>
+    <p class="sec">메모 <span style="font-weight:400;font-size:13px;color:var(--txm)">(선택)</span></p>
+    <textarea id="parking-memo" class="fi" rows="2" placeholder="추가 메모를 입력하세요"></textarea>
+  </div>
+
+  <!-- PARKING HISTORY -->
+  <div id="v-parking-history" class="view">
+    <button class="back" onclick="go('home')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><path d="M15 18l-6-6 6-6"/></svg>
+      홈
+    </button>
+    <div class="ab"><h1>주차 기록</h1></div>
+    <div id="parking-history-list"></div>
+  </div>
+
+  <!-- MAINTENANCE LIST -->
+  <div id="v-maintenance" class="view">
+    <div class="ab">
+      <h1>정비 기록</h1>
+      <button class="ib" onclick="go('maintenance-add')" title="추가">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+      </button>
+    </div>
+    <div id="maintenance-list"></div>
+  </div>
+
+  <!-- MAINTENANCE ADD -->
+  <div id="v-maintenance-add" class="view">
+    <button class="back" onclick="go('maintenance')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><path d="M15 18l-6-6 6-6"/></svg>
+      뒤로
+    </button>
+    <div class="ab"><h1>정비 기록 추가</h1>
+      <button class="btn-sm" style="display:flex;align-items:center;gap:4px;padding:0 14px;height:36px;border-radius:8px;background:var(--pr);color:#fff;font-weight:700;font-size:13px" onclick="saveMaintenance()">저장</button>
+    </div>
+    <div class="fg">
+      <label>정비 유형 *</label>
+      <select id="maint-type" class="fi"></select>
+    </div>
+    <div class="fg">
+      <label>날짜 *</label>
+      <input id="maint-date" type="date" class="fi">
+    </div>
+    <div class="fg">
+      <label>주행거리 (km) *</label>
+      <input id="maint-mileage" type="number" class="fi" placeholder="예: 52000" inputmode="numeric">
+    </div>
+    <div class="frow">
+      <div class="fg">
+        <label>비용 (원)</label>
+        <input id="maint-cost" type="number" class="fi" placeholder="0" inputmode="numeric">
+      </div>
+      <div class="fg">
+        <label>다음 교체 km</label>
+        <input id="maint-next" type="number" class="fi" placeholder="예: 62000" inputmode="numeric">
+      </div>
+    </div>
+    <div class="fg">
+      <label>정비소</label>
+      <input id="maint-shop" class="fi" placeholder="정비소 이름">
+    </div>
+    <div class="fg">
+      <label>사진 <span style="font-weight:400;color:var(--txm)">(선택)</span></label>
+      <div id="maint-photos" class="pgrid"></div>
+    </div>
+    <div class="fg">
+      <label>메모</label>
+      <textarea id="maint-memo" class="fi" rows="3" placeholder="추가 메모"></textarea>
+    </div>
+  </div>
+
+  <!-- VEHICLE LIST -->
+  <div id="v-vehicles" class="view">
+    <div class="ab">
+      <h1>차량 관리</h1>
+      <button class="ib" onclick="go('vehicle-add')" title="추가">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+      </button>
+    </div>
+    <div id="vehicle-list"></div>
+    <button class="btn btn-pr" onclick="go('vehicle-add')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><path d="M12 5v14M5 12h14"/></svg>
+      차량 등록하기
+    </button>
+  </div>
+
+  <!-- VEHICLE ADD -->
+  <div id="v-vehicle-add" class="view">
+    <button class="back" onclick="go('vehicles')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><path d="M15 18l-6-6 6-6"/></svg>
+      뒤로
+    </button>
+    <div class="ab"><h1>차량 등록</h1>
+      <button style="display:flex;align-items:center;gap:4px;padding:0 14px;height:36px;border-radius:8px;background:var(--pr);color:#fff;font-weight:700;font-size:13px" onclick="saveVehicle()">등록</button>
+    </div>
+    <div class="fg">
+      <label>별명 * <span style="font-weight:400;color:var(--txm)">(예: 내 아반떼)</span></label>
+      <input id="v-name" class="fi" placeholder="차량 별명">
+    </div>
+    <div class="fg">
+      <label>번호판 *</label>
+      <input id="v-plate" class="fi" placeholder="12가3456" style="text-transform:uppercase">
+    </div>
+    <div class="frow">
+      <div class="fg">
+        <label>제조사</label>
+        <select id="v-make" class="fi">
+          <option value="">선택</option>
+          <option>현대</option><option>기아</option><option>제네시스</option>
+          <option>BMW</option><option>벤츠</option><option>아우디</option>
+          <option>폭스바겐</option><option>볼보</option><option>토요타</option>
+          <option>혼다</option><option>쌍용</option><option>쉐보레</option>
+          <option>르노</option><option>기타</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label>모델명</label>
+        <input id="v-model" class="fi" placeholder="예: 아반떼">
+      </div>
+    </div>
+    <div class="frow">
+      <div class="fg">
+        <label>연식</label>
+        <input id="v-year" type="number" class="fi" placeholder="2024" inputmode="numeric">
+      </div>
+      <div class="fg">
+        <label>색상</label>
+        <select id="v-color" class="fi">
+          <option>흰색</option><option>검정</option><option>은색</option>
+          <option>회색</option><option>빨강</option><option>파랑</option>
+          <option>초록</option><option>노랑</option><option>갈색</option><option>기타</option>
+        </select>
+      </div>
+    </div>
+    <div class="fg">
+      <label>현재 주행거리 (km)</label>
+      <input id="v-mileage" type="number" class="fi" placeholder="0" value="0" inputmode="numeric">
+    </div>
+    <div class="frow">
+      <div class="fg">
+        <label>보험사</label>
+        <input id="v-ins-co" class="fi" placeholder="삼성화재 등">
+      </div>
+      <div class="fg">
+        <label>보험 만료일</label>
+        <input id="v-ins-exp" type="date" class="fi">
+      </div>
+    </div>
+    <div class="frow">
+      <div class="fg">
+        <label>다음 차량 검사일</label>
+        <input id="v-inspect" type="date" class="fi">
+      </div>
+      <div class="fg">
+        <label>최근 오일교환 km</label>
+        <input id="v-oil-km" type="number" class="fi" placeholder="0" inputmode="numeric">
+      </div>
+    </div>
+  </div>
+
+  <!-- VEHICLE DETAIL -->
+  <div id="v-vehicle-detail" class="view">
+    <button class="back" onclick="go('vehicles')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><path d="M15 18l-6-6 6-6"/></svg>
+      뒤로
+    </button>
+    <div id="vd-content"></div>
+  </div>
+
+  <!-- ACCIDENT -->
+  <div id="v-accident" class="view">
+    <button class="back" onclick="go('home')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><path d="M15 18l-6-6 6-6"/></svg>
+      뒤로
+    </button>
+    <div class="ah">
+      <h2>⚠ 사고 발생 시 즉시 기록하세요</h2>
+      <ol>
+        <li>현장 사진을 찍어두세요</li>
+        <li>상대방 정보를 기록하세요</li>
+        <li>보험사에 연락하세요</li>
+      </ol>
+    </div>
+    <div id="acc-vehicle-info"></div>
+    <p class="sec">현장 사진</p>
+    <div id="acc-photos" class="pgrid"></div>
+    <p class="sec">사고 위치</p>
+    <div id="acc-loc" class="lrow"><div class="spin"></div><span class="lt">위치 확인 중...</span></div>
+    <p class="sec">상대방 정보</p>
+    <div class="fg"><label>상대방 번호판</label><input id="acc-plate" class="fi" placeholder="12가3456" style="text-transform:uppercase"></div>
+    <div class="fg"><label>상대방 연락처</label><input id="acc-contact" class="fi" placeholder="010-0000-0000" type="tel"></div>
+    <div class="fg"><label>사고 메모</label><textarea id="acc-memo" class="fi" rows="3" placeholder="사고 경위를 간략히 기록하세요"></textarea></div>
+    <button class="btn btn-dng" onclick="saveAccident()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v14a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+      저장
+    </button>
+    <p class="sec" style="margin-top:24px">보험사 긴급출동</p>
+    <div class="irows">
+      <div class="ins"><span class="ins-n">삼성화재</span><span class="ins-p" onclick="copyText('1588-5114')">1588-5114</span></div>
+      <div class="ins"><span class="ins-n">현대해상</span><span class="ins-p" onclick="copyText('1588-5656')">1588-5656</span></div>
+      <div class="ins"><span class="ins-n">KB손보</span><span class="ins-p" onclick="copyText('1588-0588')">1588-0588</span></div>
+      <div class="ins"><span class="ins-n">메리츠화재</span><span class="ins-p" onclick="copyText('1566-7711')">1566-7711</span></div>
+      <div class="ins"><span class="ins-n">DB손보</span><span class="ins-p" onclick="copyText('1588-0100')">1588-0100</span></div>
+      <div class="ins"><span class="ins-n">한화손보</span><span class="ins-p" onclick="copyText('1566-8000')">1566-8000</span></div>
+    </div>
+    <p style="font-size:11px;color:var(--txm);text-align:center;margin-top:8px">번호 탭 → 복사</p>
+  </div>
+
+  <!-- DRIVE LOG (business) -->
+  <div id="v-drivelog" class="view">
+    <button class="back" onclick="go('home')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><path d="M15 18l-6-6 6-6"/></svg>
+      홈
+    </button>
+    <div class="ab"><h1>운행일지</h1>
+      <button class="ib" onclick="navTo('parking')" title="주차 기록 추가">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+      </button>
+    </div>
+    <div id="drivelog-stats"></div>
+    <div id="drivelog-list"></div>
+  </div>
+
+  <!-- HANDOVER LIST (business) -->
+  <div id="v-handover" class="view">
+    <button class="back" onclick="go('home')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><path d="M15 18l-6-6 6-6"/></svg>
+      홈
+    </button>
+    <div class="ab"><h1>인수인계 기록</h1>
+      <button class="ib" onclick="initHandoverForm();go('handover-add')" title="추가">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+      </button>
+    </div>
+    <div id="handover-list"></div>
+  </div>
+
+  <!-- HANDOVER ADD (business) -->
+  <div id="v-handover-add" class="view">
+    <button class="back" onclick="go('handover')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><path d="M15 18l-6-6 6-6"/></svg>
+      뒤로
+    </button>
+    <div class="ab"><h1>인수인계 기록</h1>
+      <button style="display:flex;align-items:center;gap:4px;padding:0 14px;height:36px;border-radius:8px;background:var(--tl);color:#fff;font-weight:700;font-size:13px" onclick="saveHandover()">저장</button>
+    </div>
+    <div id="handover-vehicle-info"></div>
+    <p class="sec">구분</p>
+    <div id="handover-type-chips" class="cg"></div>
+    <p class="sec" style="margin-top:16px">운전자명 *</p>
+    <input id="handover-driver" class="fi" placeholder="운전자 이름" style="margin-bottom:12px">
+    <p class="sec">주행거리 (km) *</p>
+    <input id="handover-mileage" type="number" class="fi" placeholder="예: 52000" inputmode="numeric" style="margin-bottom:12px">
+    <p class="sec">연료 상태</p>
+    <div id="handover-fuel-chips" class="cg"></div>
+    <p class="sec" style="margin-top:16px">사진 <span style="font-weight:400;font-size:13px;color:var(--txm)">(선택)</span></p>
+    <div id="handover-photos" class="pgrid"></div>
+    <p class="sec" style="margin-top:16px">메모 <span style="font-weight:400;font-size:13px;color:var(--txm)">(선택)</span></p>
+    <textarea id="handover-memo" class="fi" rows="3" placeholder="차량 상태, 특이사항 등을 기록하세요"></textarea>
+  </div>
+
+  <!-- STATUS LIST -->
+  <div id="v-status-list" class="view">
+    <button class="back" onclick="go('home')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><path d="M15 18l-6-6 6-6"/></svg>
+      홈
+    </button>
+    <div class="ab"><h1>차량 상태 이력</h1>
+      <button class="ib" onclick="initStatusForm();go('status-add')" title="추가">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+      </button>
+    </div>
+    <div id="status-list"></div>
+  </div>
+
+  <!-- STATUS ADD -->
+  <div id="v-status-add" class="view">
+    <button class="back" onclick="go('home')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><path d="M15 18l-6-6 6-6"/></svg>
+      뒤로
+    </button>
+    <div class="ab"><h1>차량 상태 기록</h1>
+      <button style="display:flex;align-items:center;gap:4px;padding:0 14px;height:36px;border-radius:8px;background:var(--pu);color:#fff;font-weight:700;font-size:13px" onclick="saveStatus()">저장</button>
+    </div>
+    <div id="status-vehicle-info"></div>
+    <p class="sec">상태 유형</p>
+    <div id="status-chips" class="cg"></div>
+    <p class="sec">사진</p>
+    <div id="status-photos" class="pgrid"></div>
+    <p class="sec" style="margin-top:16px">상태 설명</p>
+    <textarea id="status-desc" class="fi" rows="4" placeholder="어디에 긁힘이 있는지, 어떤 경고등인지 등을 기록하세요"></textarea>
+  </div>
+
+</div><!-- #app -->
+
+<!-- Bottom Nav -->
+<nav class="bnav">
+  <button class="nb on" id="nb-home" onclick="navTo('home')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    홈
+  </button>
+  <button class="nb" id="nb-parking" onclick="navTo('parking')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 17V7h4a3 3 0 0 1 0 6H9"/></svg>
+    주차
+  </button>
+  <button class="nb" id="nb-maintenance" onclick="navTo('maintenance')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+    정비
+  </button>
+  <button class="nb" id="nb-vehicles" onclick="navTo('vehicles')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v5"/><circle cx="16" cy="19" r="2"/><circle cx="9" cy="19" r="2"/><path d="M16 17H9m7-2H9m-3 0H3"/></svg>
+    차량
+  </button>
+</nav>
+
+<!-- Accident FAB -->
+<button id="fab" class="hide" onclick="go('accident')">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+  사고 대응
+</button>
+
+<script>
+// ════════════════════════════════════════════════
+// CONSTANTS
+// ════════════════════════════════════════════════
+const FLOORS = ['B4','B3','B2','B1','1F','2F','3F','4F','5F','6F','7F','8F','옥상'];
+const MAINT_TYPES = ['엔진오일 교체','타이어 교체','타이어 로테이션','배터리 교체',
+  '에어필터 교체','브레이크 패드 교체','냉각수 교체','자동차 검사','기타 정비'];
+const STATUS_CATS = ['긁힘/찌그러짐','경고등 점등','타이어 이상','유리/외관 파손','기타'];
+const PURPOSES = [{v:'work',l:'업무'},{v:'personal',l:'개인'}];
+const HANDOVER_TYPES = ['인수 (차량 받음)','반납 (차량 돌려줌)'];
+const FUEL_LEVELS = ['F (가득)','3/4','1/2','1/4','E (부족)'];
+const MAX_PHOTOS = 8;
+const PHOTO_W = 800;
+const PHOTO_Q = 0.72;
+
+// ════════════════════════════════════════════════
+// STORAGE
+// ════════════════════════════════════════════════
+function load(k,def=[]){try{return JSON.parse(localStorage.getItem(k))||def}catch{return def}}
+function save(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){toast('저장공간 부족 — 오래된 사진을 삭제해주세요');}}
+const LS={
+  vehicles:()=>load('car_v'),
+  parking:()=>load('car_p'),
+  maintenance:()=>load('car_m'),
+  accident:()=>load('car_a'),
+  status:()=>load('car_s'),
+  handover:()=>load('car_h'),
+  cfg:()=>load('car_cfg',{}),
+  mode:()=>load('car_cfg',{}).mode||null,
+  saveCfg(c){save('car_cfg',c)},
+  saveVehicles(v){save('car_v',v)},
+  saveParking(v){save('car_p',v)},
+  saveMaintenance(v){save('car_m',v)},
+  saveAccident(v){save('car_a',v)},
+  saveStatus(v){save('car_s',v)},
+  saveHandover(v){save('car_h',v)},
+};
+
+// ════════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════════
+let selVehicleId=null;
+let curView='home';
+
+// Temporary state for forms
+let parkingPhotos=[],parkingLat=null,parkingLng=null,parkingAddr=null,selFloor=null,selPurpose='work';
+let accPhotos=[],accLat=null,accLng=null,accAddr=null;
+let maintPhotos=[],statusPhotos=[],selStatusCat=STATUS_CATS[0];
+let handoverPhotos=[],selHandoverType=HANDOVER_TYPES[0],selFuel=FUEL_LEVELS[0];
+
+// ════════════════════════════════════════════════
+// UTILS
+// ════════════════════════════════════════════════
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2)}
+function fmtDate(d){const o=new Date(d);return`${o.getFullYear()}.${String(o.getMonth()+1).padStart(2,'0')}.${String(o.getDate()).padStart(2,'0')}`}
+function fmtTime(d){const o=new Date(d);return`${String(o.getHours()).padStart(2,'0')}:${String(o.getMinutes()).padStart(2,'0')}`}
+function fmtRelative(d){const diff=Date.now()-new Date(d);const m=Math.floor(diff/60000);if(m<1)return'방금 전';if(m<60)return`${m}분 전`;const h=Math.floor(m/60);if(h<24)return`${h}시간 전`;const dy=Math.floor(h/24);if(dy<7)return`${dy}일 전`;return fmtDate(d);}
+function fmtMileage(n){return Number(n).toLocaleString('ko-KR')+' km'}
+function fmtCost(n){return Number(n).toLocaleString('ko-KR')+'원'}
+
+let _toastTimer=null;
+function toast(msg,dur=2500){
+  const el=document.getElementById('toast');
+  el.textContent=msg;el.style.display='block';
+  clearTimeout(_toastTimer);
+  _toastTimer=setTimeout(()=>{el.style.display='none'},dur);
+}
+
+function copyText(t){
+  navigator.clipboard?.writeText(t).then(()=>toast(`${t} 복사됨`)).catch(()=>toast(t));
+}
+
+// ════════════════════════════════════════════════
+// PHOTO HANDLING
+// ════════════════════════════════════════════════
+function resizePhoto(file){
+  return new Promise(resolve=>{
+    const reader=new FileReader();
+    reader.onload=e=>{
+      const img=new Image();
+      img.onload=()=>{
+        const canvas=document.createElement('canvas');
+        let w=img.width,h=img.height;
+        if(w>PHOTO_W){h=Math.round(h*PHOTO_W/w);w=PHOTO_W;}
+        canvas.width=w;canvas.height=h;
+        canvas.getContext('2d').drawImage(img,0,0,w,h);
+        resolve(canvas.toDataURL('image/jpeg',PHOTO_Q));
+      };
+      img.src=e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function renderPhotoGrid(containerId,photos,addCallback,removeCallback){
+  const c=document.getElementById(containerId);
+  if(!c)return;
+  c.innerHTML='';
+  photos.forEach((src,i)=>{
+    const div=document.createElement('div');div.className='pth';
+    div.innerHTML=`<img src="${src}" onclick="openLightbox('${src}')">
+      <button class="del" onclick="event.stopPropagation();${removeCallback}(${i})">
+        <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>`;
+    c.appendChild(div);
+  });
+  if(photos.length<MAX_PHOTOS){
+    const add=document.createElement('label');add.className='padd';
+    add.innerHTML=`<input type="file" accept="image/*" capture="environment" style="display:none" onchange="handlePhotoInput(event,'${addCallback}')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+      촬영`;
+    c.appendChild(add);
+  }
+}
+
+async function handlePhotoInput(e,cb){
+  const file=e.target.files?.[0];if(!file)return;
+  e.target.value='';
+  try{const data=await resizePhoto(file);window[cb](data);}
+  catch{toast('사진 처리 실패');}
+}
+
+function addParkingPhoto(d){parkingPhotos.push(d);renderPhotoGrid('parking-photos',parkingPhotos,'addParkingPhoto','removeParkingPhoto');}
+function removeParkingPhoto(i){parkingPhotos.splice(i,1);renderPhotoGrid('parking-photos',parkingPhotos,'addParkingPhoto','removeParkingPhoto');}
+function addAccPhoto(d){accPhotos.push(d);renderPhotoGrid('acc-photos',accPhotos,'addAccPhoto','removeAccPhoto');}
+function removeAccPhoto(i){accPhotos.splice(i,1);renderPhotoGrid('acc-photos',accPhotos,'addAccPhoto','removeAccPhoto');}
+function addMaintPhoto(d){maintPhotos.push(d);renderPhotoGrid('maint-photos',maintPhotos,'addMaintPhoto','removeMaintPhoto');}
+function removeMaintPhoto(i){maintPhotos.splice(i,1);renderPhotoGrid('maint-photos',maintPhotos,'addMaintPhoto','removeMaintPhoto');}
+function addStatusPhoto(d){statusPhotos.push(d);renderPhotoGrid('status-photos',statusPhotos,'addStatusPhoto','removeStatusPhoto');}
+function removeStatusPhoto(i){statusPhotos.splice(i,1);renderPhotoGrid('status-photos',statusPhotos,'addStatusPhoto','removeStatusPhoto');}
+
+function openLightbox(src){document.getElementById('lb-img').src=src;document.getElementById('lightbox').classList.add('open');}
+function closeLightbox(){document.getElementById('lightbox').classList.remove('open');}
+
+// ════════════════════════════════════════════════
+// GPS
+// ════════════════════════════════════════════════
+function getLocation(onDone){
+  if(!navigator.geolocation){onDone(null,null,null);return;}
+  navigator.geolocation.getCurrentPosition(
+    pos=>onDone(pos.coords.latitude,pos.coords.longitude,null),
+    ()=>onDone(null,null,null),
+    {timeout:10000,maximumAge:60000}
+  );
+}
+
+async function reverseGeocode(lat,lng){
+  try{
+    const r=await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=ko`);
+    const d=await r.json();
+    const a=d.address||{};
+    return [a.road||a.suburb||'',a.city_district||a.town||a.city||''].filter(Boolean).join(' ')||d.display_name?.split(',')[0]||null;
+  }catch{return null;}
+}
+
+function renderLocRow(id,lat,addr,loading){
+  const el=document.getElementById(id);if(!el)return;
+  if(loading){el.innerHTML=`<div class="spin"></div><span class="lt">위치 확인 중...</span>`;return;}
+  if(lat){el.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18" style="color:var(--pr)"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg><span class="lt">${addr||`${lat.toFixed(4)}, ${lng?.toFixed(4)}`}</span>`;}
+  else{el.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18" style="color:var(--txm)"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg><span class="lt" style="color:var(--txm)">위치 정보 없음</span>`;}
+}
+
+// ════════════════════════════════════════════════
+// NAVIGATION
+// ════════════════════════════════════════════════
+const NAV_TABS=['home','parking','maintenance','vehicles'];
+
+function go(view){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('v-'+view)?.classList.add('active');
+  curView=view;
+  updateNavBar(view);
+}
+
+function navTo(view){
+  if(view==='parking'){initParkingForm();}
+  else if(view==='maintenance'){renderMaintenanceList();}
+  else if(view==='vehicles'){renderVehicleList();}
+  go(view);
+}
+
+function updateNavBar(view){
+  ['home','parking','maintenance','vehicles'].forEach(id=>{
+    document.getElementById('nb-'+id)?.classList.toggle('on',view===id||
+      (id==='parking'&&(view==='parking'||view==='parking-history'))||
+      (id==='maintenance'&&(view==='maintenance'||view==='maintenance-add'))||
+      (id==='vehicles'&&(view==='vehicles'||view==='vehicle-add'||view==='vehicle-detail'))
+    );
+  });
+  const hasCar=LS.vehicles().length>0;
+  document.getElementById('fab').classList.toggle('hide',!hasCar||['accident','status-add'].includes(view));
+}
+
+// ════════════════════════════════════════════════
+// VEHICLE HELPERS
+// ════════════════════════════════════════════════
+function getSelectedVehicle(){
+  const vs=LS.vehicles();
+  if(!vs.length)return null;
+  const cfg=LS.cfg();
+  return vs.find(v=>v.id===cfg.selectedVehicleId)||vs[0];
+}
+function setSelectedVehicle(id){const c=LS.cfg();c.selectedVehicleId=id;LS.saveCfg(c);}
+
+function renderVehicleChip(containerId,v){
+  if(!v)return;
+  const el=document.getElementById(containerId);
+  if(!el)return;
+  el.innerHTML=`<div style="background:var(--pr-s);border:1px solid rgba(26,60,110,.15);border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:8px;margin-bottom:16px">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18" style="color:var(--pr);flex-shrink:0"><path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v5"/><circle cx="16" cy="19" r="2"/><circle cx="9" cy="19" r="2"/><path d="M16 17H9m7-2H9m-3 0H3"/></svg>
+    <span style="font-size:13px;font-weight:600;color:var(--pr)">${v.name}&nbsp;&nbsp;(${v.plate})</span>
+  </div>`;
+}
+
+// ════════════════════════════════════════════════
+// HOME VIEW
+// ════════════════════════════════════════════════
+function renderHome(){
+  const vs=LS.vehicles();
+  const sel=getSelectedVehicle();
+  const c=document.getElementById('home-content');
+  if(!c)return;
+
+  if(!vs.length){
+    c.innerHTML=`<div class="ob">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v5"/><circle cx="16" cy="19" r="2"/><circle cx="9" cy="19" r="2"/><path d="M16 17H9m7-2H9m-3 0H3"/></svg>
+      <h3>차량을 등록해주세요</h3>
+      <p>차량 등록 후 주차·정비·사고 기록을 시작할 수 있어요</p>
+      <button class="btn btn-pr" style="max-width:200px;margin:0 auto" onclick="go('vehicle-add')">차량 등록하기</button>
+    </div>`;
+    return;
+  }
+
+  // Active parking
+  const allParking=LS.parking();
+  const active=allParking.find(p=>p.vehicleId===sel?.id&&p.isActive);
+
+  // Recent records (parking + maintenance, sorted)
+  const recentP=LS.parking().filter(p=>p.vehicleId===sel?.id).slice(0,3)
+    .map(r=>({type:'주차',ts:new Date(r.ts),title:r.addr||r.floor||'주차 기록',sub:fmtRelative(r.ts),color:'var(--pr)',icon:'<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 17V7h4a3 3 0 0 1 0 6H9"/>'}));
+  const recentM=LS.maintenance().filter(m=>m.vehicleId===sel?.id).slice(0,3)
+    .map(r=>({type:'정비',ts:new Date(r.date),title:r.type,sub:fmtRelative(r.date),color:'var(--tl)',icon:'<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>'}));
+  const recent=[...recentP,...recentM].sort((a,b)=>b.ts-a.ts).slice(0,5);
+
+  let html='';
+
+  // Vehicle selector card
+  html+=`<div class="vc" onclick="openVModal()">
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <div>
+        <h2>${sel.name}</h2>
+        <div class="s1">${sel.plate}${sel.make?' · '+sel.make:''} ${sel.model||''}</div>
+        <div class="s2">${fmtMileage(sel.mileage||0)}</div>
+      </div>
+      ${vs.length>1?`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20" class="swap"><path d="M8 3l4 8 5-5v13H3V6l5 5z"/></svg>`:''}
+    </div>
+  </div>`;
+
+  // Active parking banner
+  if(active){
+    const loc=[active.addr,active.floor,active.zone].filter(Boolean).join(' ');
+    html+=`<div class="pb" style="margin-top:12px">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="20" height="20" style="color:var(--ok);flex-shrink:0"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 17V7h4a3 3 0 0 1 0 6H9"/></svg>
+      <div class="pi">
+        <div class="pl">현재 주차 중 — ${loc||'위치 정보 없음'}</div>
+        <div class="pt">${fmtTime(active.ts)} 주차</div>
+      </div>
+      <button class="ex" onclick="event.stopPropagation();exitParking('${active.id}')">출차</button>
+    </div>`;
+  }
+
+  // Quick actions
+  const isBiz=LS.mode()==='business';
+  html+=`<p class="sec">빠른 기록</p>
+  <div class="qg">
+    <button class="qb" style="color:var(--pr)" onclick="navTo('parking')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 17V7h4a3 3 0 0 1 0 6H9"/></svg>
+      주차 기록
+    </button>
+    <button class="qb" style="color:var(--tl)" onclick="go('maintenance-add');initMaintenanceForm()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+      정비 기록
+    </button>
+    <button class="qb" style="color:var(--pu)" onclick="initStatusForm();go('status-add')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+      상태 기록
+    </button>
+    <button class="qb" style="color:var(--pu)" onclick="go('status-list');renderStatusList()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
+      상태 이력
+    </button>
+    ${isBiz?`
+    <button class="qb" style="color:var(--tl)" onclick="go('drivelog');renderDriveLog()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+      운행일지
+    </button>
+    <button class="qb" style="color:var(--warn)" onclick="initHandoverForm();go('handover-add')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
+      인수인계
+    </button>
+    <button class="qb" style="color:var(--pr-l)" onclick="go('handover');renderHandoverList()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
+      인계이력
+    </button>`:''}
+  </div>`;
+
+  // Recent records
+  if(recent.length){
+    html+=`<p class="sec">최근 기록</p>
+    <div class="irows" style="padding:0 12px">`;
+    recent.forEach(r=>{
+      html+=`<div class="rt">
+        <div class="ri" style="background:${r.color}1a">
+          <svg viewBox="0 0 24 24" fill="none" stroke="${r.color}" stroke-width="2">${r.icon}</svg>
+        </div>
+        <div class="rinfo">
+          <div class="rt1">${r.title}</div>
+          <div class="rs">${r.sub}</div>
+        </div>
+        <span class="rbadge" style="background:${r.color}1a;color:${r.color}">${r.type}</span>
+      </div>`;
+    });
+    html+='</div>';
+  }
+
+  c.innerHTML=html;
+  updateNavBar('home');
+}
+
+function openVModal(){
+  const vs=LS.vehicles();if(vs.length<=1)return;
+  const sel=getSelectedVehicle();
+  document.getElementById('v-list').innerHTML=vs.map(v=>`
+    <div class="v-item ${v.id===sel?.id?'sel':''}" onclick="selectVehicle('${v.id}')">
+      <div>
+        <div class="vn2">${v.name}</div>
+        <div class="vs2">${v.plate}${v.make?' · '+v.make:''} ${v.model||''}</div>
+      </div>
+      ${v.id===sel?.id?'<svg viewBox="0 0 24 24" fill="none" stroke="var(--pr)" stroke-width="2.5" width="18" height="18"><path d="M20 6L9 17l-5-5"/></svg>':''}
+    </div>`).join('');
+  document.getElementById('v-modal').classList.add('open');
+}
+function closeVModal(){document.getElementById('v-modal').classList.remove('open');}
+function selectVehicle(id){setSelectedVehicle(id);closeVModal();renderHome();}
+
+function exitParking(id){
+  const ps=LS.parking();
+  const rec=ps.find(p=>p.id===id);
+  if(rec){rec.isActive=false;rec.exitTime=new Date().toISOString();}
+  LS.saveParking(ps);
+  renderHome();
+  toast('출차 처리됐어요');
+}
+
+// ════════════════════════════════════════════════
+// PARKING
+// ════════════════════════════════════════════════
+function initParkingForm(){
+  parkingPhotos=[];parkingLat=null;parkingLng=null;parkingAddr=null;selFloor=null;selPurpose='work';
+  document.getElementById('zone-input').value='';
+  document.getElementById('parking-memo').value='';
+  renderPhotoGrid('parking-photos',parkingPhotos,'addParkingPhoto','removeParkingPhoto');
+  renderVehicleChip('parking-vehicle-info',getSelectedVehicle());
+
+  // Floor chips
+  const fc=document.getElementById('floor-chips');
+  fc.innerHTML=FLOORS.map(f=>`<button class="ch" onclick="selectFloor('${f}')">${f}</button>`).join('');
+
+  // Purpose (business mode only)
+  const purSec=document.getElementById('parking-purpose-section');
+  if(LS.mode()==='business'){
+    purSec.style.display='';
+    document.getElementById('purpose-chips').innerHTML=
+      PURPOSES.map(p=>`<button class="ch${p.v===selPurpose?' on':''}" onclick="selectPurpose('${p.v}')">${p.l}</button>`).join('');
+  } else {
+    purSec.style.display='none';
+  }
+
+  // GPS
+  renderLocRow('parking-loc',null,null,true);
+  getLocation(async(lat,lng)=>{
+    parkingLat=lat;parkingLng=lng;
+    if(lat){parkingAddr=await reverseGeocode(lat,lng);}
+    renderLocRow('parking-loc',lat,parkingAddr,false);
+  });
+}
+
+function selectPurpose(v){
+  selPurpose=v;
+  document.querySelectorAll('#purpose-chips .ch').forEach(b=>{
+    b.classList.toggle('on',b.textContent===(PURPOSES.find(p=>p.v===v)?.l));
+  });
+}
+
+function selectFloor(f){
+  selFloor=selFloor===f?null:f;
+  document.querySelectorAll('#floor-chips .ch').forEach(b=>{
+    b.classList.toggle('on',b.textContent===selFloor);
+  });
+}
+
+function saveParking(){
+  const sel=getSelectedVehicle();
+  if(!sel){toast('차량을 먼저 등록해주세요');return;}
+  if(!parkingPhotos.length){toast('사진을 한 장 이상 찍어주세요');return;}
+
+  // Deactivate previous active parking for this vehicle
+  const ps=LS.parking();
+  ps.filter(p=>p.vehicleId===sel.id&&p.isActive).forEach(p=>{p.isActive=false;p.exitTime=new Date().toISOString();});
+
+  const rec={
+    id:uid(),vehicleId:sel.id,ts:new Date().toISOString(),
+    lat:parkingLat,lng:parkingLng,addr:parkingAddr,
+    floor:selFloor,zone:document.getElementById('zone-input').value.trim()||null,
+    memo:document.getElementById('parking-memo').value.trim()||null,
+    purpose:LS.mode()==='business'?selPurpose:null,
+    photos:parkingPhotos,isActive:true,exitTime:null
+  };
+  ps.unshift(rec);
+  LS.saveParking(ps);
+  toast('주차 기록이 저장됐어요');
+  go('home');renderHome();
+}
+
+// ════════════════════════════════════════════════
+// PARKING HISTORY
+// ════════════════════════════════════════════════
+function renderParkingHistory(){
+  const sel=getSelectedVehicle();
+  const ps=LS.parking().filter(p=>p.vehicleId===sel?.id);
+  const c=document.getElementById('parking-history-list');
+  if(!c)return;
+  if(!ps.length){c.innerHTML=`<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 17V7h4a3 3 0 0 1 0 6H9"/></svg><p>주차 기록이 없어요</p></div>`;return;}
+  c.innerHTML=ps.map(r=>{
+    const loc=[r.addr,r.floor,r.zone].filter(Boolean).join(' ')||'위치 정보 없음';
+    const photos=r.photos?.slice(0,4)||[];
+    return`<div class="lc">
+      <div class="lc-row">
+        <div class="lc-icon" style="background:var(--pr-s)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="var(--pr)" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 17V7h4a3 3 0 0 1 0 6H9"/></svg>
+        </div>
+        <div class="lc-body">
+          <div class="lc-title">${fmtDate(r.ts)} ${fmtTime(r.ts)}</div>
+          <div class="lc-sub">${loc}</div>
+          <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:4px">
+            ${r.isActive?'<span class="lc-badge" style="background:var(--ok-s);color:var(--ok)">주차 중</span>':''}
+            ${r.purpose?`<span class="lc-badge ${r.purpose==='work'?'pur-w':'pur-p'}">${r.purpose==='work'?'업무':'개인'}</span>`:''}
+          </div>
+          ${r.memo?`<div style="font-size:12px;color:var(--tx2);margin-top:4px">${r.memo}</div>`:''}
+        </div>
+        ${r.isActive?`<button onclick="exitParking('${r.id}')" style="background:var(--ok);color:#fff;border-radius:8px;padding:6px 10px;font-size:12px;font-weight:700;flex-shrink:0;height:fit-content">출차</button>`:''}
+      </div>
+      ${photos.length?`<div class="lc-photos" style="margin-top:10px">${photos.map(p=>`<img src="${p}" onclick="openLightbox('${p}')">`).join('')}</div>`:''}
+    </div>`;
+  }).join('');
+}
+
+// ════════════════════════════════════════════════
+// MAINTENANCE
+// ════════════════════════════════════════════════
+function initMaintenanceForm(){
+  maintPhotos=[];
+  const today=new Date().toISOString().split('T')[0];
+  const sel=getSelectedVehicle();
+  renderVehicleChip('parking-vehicle-info',sel);
+
+  const typeEl=document.getElementById('maint-type');
+  typeEl.innerHTML=MAINT_TYPES.map(t=>`<option>${t}</option>`).join('');
+  document.getElementById('maint-date').value=today;
+  document.getElementById('maint-mileage').value=sel?.mileage||'';
+  document.getElementById('maint-cost').value='';
+  document.getElementById('maint-next').value='';
+  document.getElementById('maint-shop').value='';
+  document.getElementById('maint-memo').value='';
+  renderPhotoGrid('maint-photos',maintPhotos,'addMaintPhoto','removeMaintPhoto');
+}
+
+function saveMaintenance(){
+  const sel=getSelectedVehicle();
+  if(!sel){toast('차량을 먼저 등록해주세요');return;}
+  const mileage=parseInt(document.getElementById('maint-mileage').value);
+  if(!mileage){toast('주행거리를 입력해주세요');return;}
+
+  const rec={
+    id:uid(),vehicleId:sel.id,
+    type:document.getElementById('maint-type').value,
+    date:document.getElementById('maint-date').value,
+    mileage,
+    cost:parseInt(document.getElementById('maint-cost').value)||null,
+    nextMileage:parseInt(document.getElementById('maint-next').value)||null,
+    shop:document.getElementById('maint-shop').value.trim()||null,
+    memo:document.getElementById('maint-memo').value.trim()||null,
+    photos:maintPhotos,createdAt:new Date().toISOString()
+  };
+  const ms=LS.maintenance();ms.unshift(rec);LS.saveMaintenance(ms);
+
+  // Update vehicle mileage if higher
+  const vs=LS.vehicles();const vi=vs.findIndex(v=>v.id===sel.id);
+  if(vi>=0&&mileage>(vs[vi].mileage||0)){vs[vi].mileage=mileage;LS.saveVehicles(vs);}
+
+  toast('정비 기록이 저장됐어요');
+  go('maintenance');renderMaintenanceList();
+}
+
+function renderMaintenanceList(){
+  const sel=getSelectedVehicle();
+  const ms=LS.maintenance().filter(m=>m.vehicleId===sel?.id);
+  const c=document.getElementById('maintenance-list');
+  if(!c)return;
+  if(!ms.length){c.innerHTML=`<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg><p>정비 기록이 없어요</p></div>`;return;}
+  c.innerHTML=ms.map(r=>`<div class="lc">
+    <div class="lc-row">
+      <div class="lc-icon" style="background:var(--tl-s)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="var(--tl)" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+      </div>
+      <div class="lc-body">
+        <div class="lc-title">${r.type}</div>
+        <div class="lc-sub">${fmtDate(r.date)} · ${fmtMileage(r.mileage)}</div>
+        ${r.shop||r.cost?`<div class="lc-extra">${r.shop?`<span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>${r.shop}</span>`:''}${r.cost?`<span>${fmtCost(r.cost)}</span>`:''}</div>`:''}
+        ${r.nextMileage?`<span class="lc-next">다음 교체 ${fmtMileage(r.nextMileage)}</span>`:''}
+        ${r.memo?`<div style="font-size:12px;color:var(--tx2);margin-top:4px">${r.memo}</div>`:''}
+      </div>
+      <button onclick="deleteMaintenance('${r.id}')" style="color:var(--txm);flex-shrink:0;padding:4px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+      </button>
+    </div>
+    ${r.photos?.length?`<div class="lc-photos">${r.photos.slice(0,4).map(p=>`<img src="${p}" onclick="openLightbox('${p}')">`).join('')}</div>`:''}
+  </div>`).join('');
+}
+
+function deleteMaintenance(id){
+  confirmAction('정비 기록 삭제','이 정비 기록을 삭제할까요?',()=>{
+    const ms=LS.maintenance().filter(m=>m.id!==id);
+    LS.saveMaintenance(ms);renderMaintenanceList();toast('삭제됐어요');
+  });
+}
+
+// ════════════════════════════════════════════════
+// VEHICLES
+// ════════════════════════════════════════════════
+function saveVehicle(){
+  const name=document.getElementById('v-name').value.trim();
+  const plate=document.getElementById('v-plate').value.trim().toUpperCase();
+  if(!name){toast('별명을 입력해주세요');return;}
+  if(!plate){toast('번호판을 입력해주세요');return;}
+
+  const rec={
+    id:uid(),name,plate,
+    make:document.getElementById('v-make').value,
+    model:document.getElementById('v-model').value.trim(),
+    year:parseInt(document.getElementById('v-year').value)||new Date().getFullYear(),
+    color:document.getElementById('v-color').value,
+    mileage:parseInt(document.getElementById('v-mileage').value)||0,
+    insuranceCo:document.getElementById('v-ins-co').value.trim()||null,
+    insuranceExp:document.getElementById('v-ins-exp').value||null,
+    inspectionDate:document.getElementById('v-inspect').value||null,
+    oilKm:parseInt(document.getElementById('v-oil-km').value)||null,
+    createdAt:new Date().toISOString()
+  };
+  const vs=LS.vehicles();vs.push(rec);LS.saveVehicles(vs);
+  setSelectedVehicle(rec.id);
+  toast('차량이 등록됐어요');
+  go('home');renderHome();
+}
+
+function renderVehicleList(){
+  const vs=LS.vehicles();
+  const sel=getSelectedVehicle();
+  const c=document.getElementById('vehicle-list');
+  if(!c)return;
+  if(!vs.length){c.innerHTML=`<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v5"/><circle cx="16" cy="19" r="2"/><circle cx="9" cy="19" r="2"/></svg><p>등록된 차량이 없어요</p></div>`;return;}
+  c.innerHTML=vs.map(v=>`<div class="v-card ${v.id===sel?.id?'sel':''}" onclick="openVehicleDetail('${v.id}')">
+    <div class="vi ${v.id===sel?.id?'':''}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="${v.id===sel?.id?'var(--pr)':'var(--txm)'}" stroke-width="2"><path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v5"/><circle cx="16" cy="19" r="2"/><circle cx="9" cy="19" r="2"/><path d="M16 17H9m7-2H9m-3 0H3"/></svg>
+    </div>
+    <div class="vb">
+      <div class="vn">${v.name}</div>
+      <div class="vs">${v.plate}${v.make?' · '+v.make:''} ${v.model||''}</div>
+      <div class="vs">${fmtMileage(v.mileage||0)}</div>
+    </div>
+    ${v.id===sel?.id?`<span style="font-size:11px;font-weight:700;color:#fff;background:var(--pr);border-radius:6px;padding:2px 7px">선택됨</span>`:`<button onclick="event.stopPropagation();selectVehicle('${v.id}')" style="color:var(--pr);font-size:13px;font-weight:600;flex-shrink:0">선택</button>`}
+  </div>`).join('');
+}
+
+function openVehicleDetail(id){
+  renderVehicleDetail(id);go('vehicle-detail');
+}
+
+function renderVehicleDetail(id){
+  const vs=LS.vehicles();
+  const v=vs.find(v=>v.id===id);
+  if(!v)return;
+  const c=document.getElementById('vd-content');
+  if(!c)return;
+
+  // Upcoming alerts
+  const alerts=[];
+  if(v.inspectionDate){const d=(new Date(v.inspectionDate)-Date.now())/(1000*60*60*24);if(d<60)alerts.push(`자동차 검사 ${Math.max(0,Math.ceil(d))}일 후 (${fmtDate(v.inspectionDate)})`);}
+  if(v.insuranceExp){const d=(new Date(v.insuranceExp)-Date.now())/(1000*60*60*24);if(d<30)alerts.push(`보험 만료 ${Math.max(0,Math.ceil(d))}일 후 (${fmtDate(v.insuranceExp)})`);}
+  if(v.oilKm){const next=v.oilKm+10000;const rem=next-(v.mileage||0);if(rem<2000)alerts.push(`엔진오일 교체 ${rem.toLocaleString()}km 남음`);}
+
+  const recentM=LS.maintenance().filter(m=>m.vehicleId===id).slice(0,3);
+
+  c.innerHTML=`
+    <div style="background:linear-gradient(135deg,var(--pr),var(--pr-l));border-radius:var(--r);padding:24px;color:#fff;text-align:center;margin-bottom:16px">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="52" height="52" style="margin:0 auto 10px;opacity:.9"><path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v5"/><circle cx="16" cy="19" r="2"/><circle cx="9" cy="19" r="2"/><path d="M16 17H9m7-2H9m-3 0H3"/></svg>
+      <div style="font-size:22px;font-weight:800">${v.name}</div>
+      <div style="opacity:.75;font-size:14px;margin-top:2px">${v.make||''} ${v.model||''} · ${v.year||''}년식</div>
+      <div style="font-size:18px;font-weight:700;letter-spacing:2px;margin-top:8px">${v.plate}</div>
+    </div>
+
+    ${alerts.length?`<div class="ab2"><div class="at">⚠ 예정 알림</div>${alerts.map(a=>`<div class="ai">• ${a}</div>`).join('')}</div>`:''}
+
+    <p class="sec">차량 정보</p>
+    <div class="irows">
+      <div class="irow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span class="lb">주행거리</span><span class="vl">${fmtMileage(v.mileage||0)}</span></div>
+      <div class="irow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg><span class="lb">색상</span><span class="vl">${v.color||'—'}</span></div>
+      ${v.insuranceCo?`<div class="irow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span class="lb">보험사</span><span class="vl">${v.insuranceCo}</span></div>`:''}
+      ${v.insuranceExp?`<div class="irow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span class="lb">보험 만료</span><span class="vl ${(new Date(v.insuranceExp)-Date.now())/(1000*60*60*24)<30?'dng':''}">${fmtDate(v.insuranceExp)}</span></div>`:''}
+    </div>
+
+    ${recentM.length?`<p class="sec">최근 정비</p><div class="irows" style="padding:0 12px">${recentM.map(r=>`<div class="rt">
+      <div class="ri" style="background:var(--tl-s)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--tl)" stroke-width="2" width="18" height="18"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></div>
+      <div class="rinfo"><div class="rt1">${r.type}</div><div class="rs">${fmtDate(r.date)} · ${fmtMileage(r.mileage)}</div></div>
+    </div>`).join('')}</div>`:''}
+
+    <button class="btn" style="background:var(--dng-s);color:var(--dng);margin-top:20px" onclick="deleteVehicle('${v.id}')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+      차량 삭제
+    </button>`;
+}
+
+function deleteVehicle(id){
+  const vs=LS.vehicles();
+  const v=vs.find(v=>v.id===id);
+  confirmAction('차량 삭제',`"${v?.name}"을(를) 삭제할까요?\n모든 기록이 함께 삭제됩니다.`,()=>{
+    LS.saveVehicles(vs.filter(v=>v.id!==id));
+    LS.saveParking(LS.parking().filter(p=>p.vehicleId!==id));
+    LS.saveMaintenance(LS.maintenance().filter(m=>m.vehicleId!==id));
+    LS.saveAccident(LS.accident().filter(a=>a.vehicleId!==id));
+    LS.saveStatus(LS.status().filter(s=>s.vehicleId!==id));
+    if(LS.cfg().selectedVehicleId===id){const c=LS.cfg();delete c.selectedVehicleId;LS.saveCfg(c);}
+    toast('삭제됐어요');
+    go('vehicles');renderVehicleList();
+  });
+}
+
+// ════════════════════════════════════════════════
+// ACCIDENT
+// ════════════════════════════════════════════════
+function initAccidentForm(){
+  accPhotos=[];accLat=null;accLng=null;accAddr=null;
+  document.getElementById('acc-plate').value='';
+  document.getElementById('acc-contact').value='';
+  document.getElementById('acc-memo').value='';
+  renderPhotoGrid('acc-photos',accPhotos,'addAccPhoto','removeAccPhoto');
+  renderVehicleChip('acc-vehicle-info',getSelectedVehicle());
+  renderLocRow('acc-loc',null,null,true);
+  getLocation(async(lat,lng)=>{
+    accLat=lat;accLng=lng;
+    if(lat){accAddr=await reverseGeocode(lat,lng);}
+    renderLocRow('acc-loc',lat,accAddr,false);
+  });
+}
+
+function saveAccident(){
+  const sel=getSelectedVehicle();
+  if(!sel){toast('차량을 먼저 등록해주세요');return;}
+  const rec={
+    id:uid(),vehicleId:sel.id,ts:new Date().toISOString(),
+    lat:accLat,lng:accLng,addr:accAddr,
+    otherPlate:document.getElementById('acc-plate').value.trim().toUpperCase()||null,
+    otherContact:document.getElementById('acc-contact').value.trim()||null,
+    memo:document.getElementById('acc-memo').value.trim()||null,
+    photos:accPhotos,createdAt:new Date().toISOString()
+  };
+  const as=LS.accident();as.unshift(rec);LS.saveAccident(as);
+  toast('사고 기록이 저장됐어요');
+  go('home');renderHome();
+}
+
+// ════════════════════════════════════════════════
+// VEHICLE STATUS
+// ════════════════════════════════════════════════
+function initStatusForm(){
+  statusPhotos=[];selStatusCat=STATUS_CATS[0];
+  document.getElementById('status-desc').value='';
+  renderPhotoGrid('status-photos',statusPhotos,'addStatusPhoto','removeStatusPhoto');
+  renderVehicleChip('status-vehicle-info',getSelectedVehicle());
+  renderStatusChips();
+}
+
+function renderStatusChips(){
+  const c=document.getElementById('status-chips');if(!c)return;
+  c.innerHTML=STATUS_CATS.map(cat=>`<button class="ch pu ${cat===selStatusCat?'on':''}" onclick="selectStatusCat('${cat}')">${cat}</button>`).join('');
+}
+
+function selectStatusCat(cat){selStatusCat=cat;renderStatusChips();}
+
+function saveStatus(){
+  const sel=getSelectedVehicle();
+  if(!sel){toast('차량을 먼저 등록해주세요');return;}
+  const rec={
+    id:uid(),vehicleId:sel.id,category:selStatusCat,
+    description:document.getElementById('status-desc').value.trim()||null,
+    photos:statusPhotos,ts:new Date().toISOString(),createdAt:new Date().toISOString()
+  };
+  const ss=LS.status();ss.unshift(rec);LS.saveStatus(ss);
+  toast('상태 기록이 저장됐어요');
+  go('home');renderHome();
+}
+
+// ════════════════════════════════════════════════
+// DRIVE LOG (business mode)
+// ════════════════════════════════════════════════
+function renderDriveLog(){
+  const sel=getSelectedVehicle();
+  const ps=LS.parking().filter(p=>p.vehicleId===sel?.id);
+  const sc=document.getElementById('drivelog-stats');
+  const lc=document.getElementById('drivelog-list');
+  if(!sc||!lc)return;
+
+  const work=ps.filter(p=>p.purpose==='work').length;
+  const pers=ps.filter(p=>p.purpose==='personal').length;
+  const total=ps.length;
+  const workPct=total?Math.round(work/total*100):0;
+
+  sc.innerHTML=`<div class="dl-bar">
+    <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:700;margin-bottom:6px">
+      <span>전체 ${total}건</span>
+      <span style="color:var(--txm)">업무 ${workPct}%</span>
+    </div>
+    <div class="dl-bar-track"><div class="dl-bar-fill" style="width:${workPct}%"></div></div>
+    <div class="dl-nums">
+      <span class="wk">업무 ${work}건</span>
+      <span class="ps">개인 ${pers}건 · 미분류 ${total-work-pers}건</span>
+    </div>
+  </div>`;
+
+  if(!ps.length){
+    lc.innerHTML=`<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><p>운행 기록이 없어요</p></div>`;
+    return;
+  }
+  lc.innerHTML=ps.map(r=>{
+    const loc=[r.addr,r.floor,r.zone].filter(Boolean).join(' ')||'위치 정보 없음';
+    return`<div class="lc">
+      <div class="lc-row">
+        <div class="lc-icon" style="background:var(--pr-s)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="var(--pr)" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 17V7h4a3 3 0 0 1 0 6H9"/></svg>
+        </div>
+        <div class="lc-body">
+          <div class="lc-title">${fmtDate(r.ts)} ${fmtTime(r.ts)}</div>
+          <div class="lc-sub">${loc}</div>
+          <div style="display:flex;gap:5px;margin-top:4px">
+            ${r.purpose?`<span class="lc-badge ${r.purpose==='work'?'pur-w':'pur-p'}">${r.purpose==='work'?'업무':'개인'}</span>`:'<span class="lc-badge" style="background:var(--bd);color:var(--txm)">미분류</span>'}
+            ${r.isActive?'<span class="lc-badge" style="background:var(--ok-s);color:var(--ok)">주차 중</span>':''}
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ════════════════════════════════════════════════
+// HANDOVER (business mode)
+// ════════════════════════════════════════════════
+function initHandoverForm(){
+  handoverPhotos=[];selHandoverType=HANDOVER_TYPES[0];selFuel=FUEL_LEVELS[0];
+  renderVehicleChip('handover-vehicle-info',getSelectedVehicle());
+  document.getElementById('handover-driver').value='';
+  document.getElementById('handover-mileage').value=getSelectedVehicle()?.mileage||'';
+  document.getElementById('handover-memo').value='';
+  document.getElementById('handover-type-chips').innerHTML=
+    HANDOVER_TYPES.map(t=>`<button class="ch${t===selHandoverType?' on':''}" onclick="selHandoverType='${t}';document.querySelectorAll('#handover-type-chips .ch').forEach(b=>b.classList.toggle('on',b.textContent==='${t}'))">${t}</button>`).join('');
+  document.getElementById('handover-fuel-chips').innerHTML=
+    FUEL_LEVELS.map(f=>`<button class="ch${f===selFuel?' on':''}" onclick="selFuel='${f}';document.querySelectorAll('#handover-fuel-chips .ch').forEach(b=>b.classList.toggle('on',b.textContent==='${f}'))">${f}</button>`).join('');
+  renderPhotoGrid('handover-photos',handoverPhotos,'addHandoverPhoto','removeHandoverPhoto');
+}
+
+function addHandoverPhoto(d){handoverPhotos.push(d);renderPhotoGrid('handover-photos',handoverPhotos,'addHandoverPhoto','removeHandoverPhoto');}
+function removeHandoverPhoto(i){handoverPhotos.splice(i,1);renderPhotoGrid('handover-photos',handoverPhotos,'addHandoverPhoto','removeHandoverPhoto');}
+
+function saveHandover(){
+  const sel=getSelectedVehicle();
+  if(!sel){toast('차량을 먼저 등록해주세요');return;}
+  const driver=document.getElementById('handover-driver').value.trim();
+  if(!driver){toast('운전자명을 입력해주세요');return;}
+  const mileage=parseInt(document.getElementById('handover-mileage').value);
+  if(!mileage){toast('주행거리를 입력해주세요');return;}
+
+  const rec={
+    id:uid(),vehicleId:sel.id,ts:new Date().toISOString(),
+    type:selHandoverType,driver,mileage,fuel:selFuel,
+    memo:document.getElementById('handover-memo').value.trim()||null,
+    photos:handoverPhotos
+  };
+  const hs=LS.handover();hs.unshift(rec);LS.saveHandover(hs);
+
+  const vs=LS.vehicles();const vi=vs.findIndex(v=>v.id===sel.id);
+  if(vi>=0&&mileage>(vs[vi].mileage||0)){vs[vi].mileage=mileage;LS.saveVehicles(vs);}
+
+  toast('인수인계 기록이 저장됐어요');
+  go('handover');renderHandoverList();
+}
+
+function renderHandoverList(){
+  const sel=getSelectedVehicle();
+  const hs=LS.handover().filter(h=>h.vehicleId===sel?.id);
+  const c=document.getElementById('handover-list');
+  if(!c)return;
+  if(!hs.length){c.innerHTML=`<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg><p>인수인계 기록이 없어요</p></div>`;return;}
+  c.innerHTML=hs.map(r=>`<div class="lc">
+    <div class="lc-row">
+      <div class="lc-icon" style="background:var(--tl-s)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="var(--tl)" stroke-width="2"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
+      </div>
+      <div class="lc-body">
+        <div class="lc-title">${r.type}</div>
+        <div class="lc-sub">${fmtDate(r.ts)} · ${r.driver} · ${fmtMileage(r.mileage)}</div>
+        ${r.fuel?`<div class="lc-extra"><span>연료: ${r.fuel}</span></div>`:''}
+        ${r.memo?`<div style="font-size:12px;color:var(--tx2);margin-top:4px">${r.memo}</div>`:''}
+      </div>
+      <button onclick="deleteHandover('${r.id}')" style="color:var(--txm);flex-shrink:0;padding:4px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+      </button>
+    </div>
+    ${r.photos?.length?`<div class="lc-photos">${r.photos.slice(0,4).map(p=>`<img src="${p}" onclick="openLightbox('${p}')">`).join('')}</div>`:''}
+  </div>`).join('');
+}
+
+function deleteHandover(id){
+  confirmAction('인수인계 기록 삭제','이 기록을 삭제할까요?',()=>{
+    LS.saveHandover(LS.handover().filter(h=>h.id!==id));renderHandoverList();toast('삭제됐어요');
+  });
+}
+
+// ════════════════════════════════════════════════
+// MODE / SETTINGS
+// ════════════════════════════════════════════════
+function selectMode(mode){
+  const c=LS.cfg();c.mode=mode;LS.saveCfg(c);
+  updateModeBadge();
+  go('home');
+  renderHome();
+}
+
+function updateModeBadge(){
+  const badge=document.getElementById('mode-badge');
+  if(badge)badge.style.display=LS.mode()==='business'?'':'none';
+}
+
+function openSettings(){
+  const mode=LS.mode();
+  document.getElementById('mode-toggle-btn').textContent=
+    mode==='business'?'개인용으로 변경':'법인/업무용으로 변경';
+  document.getElementById('settings-modal').style.display='flex';
+}
+function closeSettings(){document.getElementById('settings-modal').style.display='none';}
+function toggleMode(){
+  const c=LS.cfg();
+  c.mode=c.mode==='business'?'personal':'business';
+  LS.saveCfg(c);
+  updateModeBadge();
+  renderHome();
+  closeSettings();
+  toast(c.mode==='business'?'법인/업무용 모드로 전환됐어요':'개인용 모드로 전환됐어요');
+}
+
+// ════════════════════════════════════════════════
+// THEME
+// ════════════════════════════════════════════════
+function toggleTheme(){
+  const isDark=document.documentElement.dataset.theme==='dark';
+  document.documentElement.dataset.theme=isDark?'':'dark';
+  const c=LS.cfg();c.theme=isDark?'light':'dark';LS.saveCfg(c);
+}
+
+// ════════════════════════════════════════════════
+// STATUS LIST
+// ════════════════════════════════════════════════
+function renderStatusList(){
+  const sel=getSelectedVehicle();
+  const ss=LS.status().filter(s=>s.vehicleId===sel?.id);
+  const c=document.getElementById('status-list');
+  if(!c)return;
+  if(!ss.length){
+    c.innerHTML=`<div class="empty">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+      <p>차량 상태 기록이 없어요</p>
+    </div>`;
+    return;
+  }
+  c.innerHTML=ss.map(r=>`<div class="lc">
+    <div class="lc-row">
+      <div class="lc-icon" style="background:var(--pu-s)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="var(--pu)" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+      </div>
+      <div class="lc-body">
+        <div class="lc-title">${r.category}</div>
+        <div class="lc-sub">${fmtDate(r.ts)} ${fmtTime(r.ts)}</div>
+        ${r.description?`<div style="font-size:12px;color:var(--tx2);margin-top:4px">${r.description}</div>`:''}
+      </div>
+      <button onclick="deleteStatus('${r.id}')" style="color:var(--txm);flex-shrink:0;padding:4px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+      </button>
+    </div>
+    ${r.photos?.length?`<div class="lc-photos">${r.photos.slice(0,4).map(p=>`<img src="${p}" onclick="openLightbox('${p}')">`).join('')}</div>`:''}
+  </div>`).join('');
+}
+
+function deleteStatus(id){
+  confirmAction('상태 기록 삭제','이 상태 기록을 삭제할까요?',()=>{
+    LS.saveStatus(LS.status().filter(s=>s.id!==id));renderStatusList();toast('삭제됐어요');
+  });
+}
+
+// ════════════════════════════════════════════════
+// BACKUP / RESTORE
+// ════════════════════════════════════════════════
+function exportData(){
+  const data={
+    app:'CarLog',schemaVersion:1,exportedAt:new Date().toISOString(),
+    state:{
+      car_v:LS.vehicles(),car_p:LS.parking(),car_m:LS.maintenance(),
+      car_a:LS.accident(),car_s:LS.status(),car_h:LS.handover(),car_cfg:LS.cfg()
+    }
+  };
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=`CarLog-backup-${new Date().toISOString().split('T')[0]}.json`;
+  a.click();URL.revokeObjectURL(a.href);
+  toast('백업 파일이 저장됐어요');
+}
+
+function importData(e){
+  const file=e.target.files?.[0];if(!file)return;
+  e.target.value='';
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    try{
+      const d=JSON.parse(ev.target.result);
+      if(d.app&&d.app!=='CarLog'){toast('이 파일은 차량기록 백업 파일이 아니에요');return;}
+      const s=d.state||d;
+      if(s.car_v)save('car_v',s.car_v);
+      if(s.car_p)save('car_p',s.car_p);
+      if(s.car_m)save('car_m',s.car_m);
+      if(s.car_a)save('car_a',s.car_a);
+      if(s.car_s)save('car_s',s.car_s);
+      if(s.car_h)save('car_h',s.car_h);
+      if(s.car_cfg)save('car_cfg',s.car_cfg);
+      toast('복원 완료! 앱을 새로고침합니다');
+      setTimeout(()=>location.reload(),1200);
+    }catch{toast('파일 형식이 올바르지 않아요');}
+  };
+  reader.readAsText(file);
+}
+
+// ════════════════════════════════════════════════
+// CONFIRM DIALOG
+// ════════════════════════════════════════════════
+let _confirmCb=null;
+function confirmAction(title,msg,cb){
+  document.getElementById('confirm-title').textContent=title;
+  document.getElementById('confirm-msg').textContent=msg;
+  _confirmCb=cb;
+  document.getElementById('confirm-modal').classList.add('open');
+}
+function closeConfirm(){document.getElementById('confirm-modal').classList.remove('open');_confirmCb=null;}
+document.getElementById('confirm-ok').onclick=()=>{_confirmCb&&_confirmCb();closeConfirm();};
+
+// ════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════
+(function init(){
+  const cfg=LS.cfg();
+  if(cfg.theme==='dark')document.documentElement.dataset.theme='dark';
+
+  const today=new Date().toISOString().split('T')[0];
+  document.getElementById('maint-date').value=today;
+  document.getElementById('v-year').value=new Date().getFullYear();
+  document.getElementById('maint-type').innerHTML=MAINT_TYPES.map(t=>`<option>${t}</option>`).join('');
+
+  if(!cfg.mode){
+    document.querySelector('.bnav').style.display='none';
+    go('onboarding');
+    return;
+  }
+
+  updateModeBadge();
+  go('home');
+  renderHome();
+})();
+
+// Extended go: init forms + restore nav after onboarding
+const origGo=go;
+window.go=function(view){
+  if(view==='accident')initAccidentForm();
+  if(view==='drivelog')renderDriveLog();
+  if(view==='handover')renderHandoverList();
+  if(view==='status-list')renderStatusList();
+  if(view!=='onboarding'){
+    document.querySelector('.bnav').style.display='';
+  }
+  origGo(view);
+};
+
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('/sw.js').catch(()=>{});
+}
+</script>
+</body>
+</html>
