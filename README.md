@@ -1,47 +1,86 @@
 # Car Log
 
-> 사진 기반 차량 상태기록 플랫폼 — 주차·정비·사고·상태·인수인계를 사진 중심으로 빠르게 기록.
+> Photo-based vehicle record platform — parking, maintenance, accidents, condition, and business handovers, all organized around photos.
 
-사용자는 사진을 찍고 간단히 선택만 하면 되고, 앱은 날짜·시간·위치·차량을 자동 정리합니다.
+Take a photo and tap — the app auto-records date, time, location, and vehicle.
 
-## 핵심 기능
+## Features
 
-- 🚗 **차량 등록** — 번호판, 제조사, 연식, 보험·검사 일정 관리
-- 🅿 **주차 기록** — 사진 + GPS 자동저장 (Nominatim 역지오코딩) + 층수/구역 선택
-- 🔧 **정비 기록** — 종류·비용·주행거리·사진, 다음 교체 알림
-- ⚠ **사고 대응** — 현장사진·위치 즉시 기록 + 보험사 긴급연락처
-- 📷 **차량 상태 기록** — 긁힘·경고등·타이어·유리 등 사진 기반 기록
-- 🏢 **법인/업무용 모드** — 운행목적(업무/개인) 기록, 운행일지, 인수인계 기록
-- 🌗 **라이트/다크 테마** — 설정에서 토글
+- **Vehicle Registration** — plate, make, model, year, insurance and inspection schedule
+- **Parking Records** — photo + GPS auto-save (Nominatim reverse geocoding), floor/zone selection, active parking banner with photo on home screen
+- **Maintenance Records** — type, cost, mileage, photos, next service reminder
+- **Accident Response** — scene photos, GPS location, emergency insurer contacts
+- **Vehicle Status** — scratches, warning lights, tires, glass — photo-based log
+- **Vehicle Timeline** — unified view: parking, maintenance, accidents, status, handovers
+- **Personal / Business mode** — onboarding selection, toggle in settings any time
+- **Business features**:
+  - 운행목적 (work/personal) on parking records
+  - 운행일지 — work/personal ratio stats
+  - 인수인계 — driver handover records (mileage, fuel, photos)
+  - 렌트카 점검 — pickup/return comparison, fuel level, photos, PDF report
+  - 외관 체크리스트 — section-by-section 양호/경미/손상 check, photos, PDF report
+- **Light/Dark theme** — toggle in settings
+- **HUB button** — fixed top-center, links to MetaMoni hub (`/`)
+- **PWA** — installable, offline-capable, service worker with update banner
+- **Data backup/restore** — JSON export/import for all records
 
-## 기술 구성
+## Tech Stack
 
-| 레이어 | 기술 |
-|--------|------|
-| Frontend | Single-file HTML + Vanilla CSS/JS |
-| Storage | 브라우저 `localStorage` |
-| Server | `nginx:alpine` — `$PORT` 동적 바인딩, `/healthz` |
+| Layer | Technology |
+|-------|-----------|
+| Frontend | Single-file `app/index.html` — vanilla HTML + CSS + JS |
+| Storage | Browser `localStorage` (no backend) |
+| Server | `nginx:alpine` — `$PORT`-aware, `/healthz` endpoint |
 | Container | Docker, docker-compose |
+| PWA | `manifest.json` + `sw.js` (network-first HTML, cache-first assets) |
 
-## 빠른 시작
+## Quick Start
 
 ```bash
+# Local Docker
 docker compose up --build -d
 open http://localhost:3403
+
+# Or open app/index.html directly in a browser (no server needed for dev)
 ```
 
-또는 `app/index.html` 을 브라우저로 직접 열어도 동작합니다.
+## Deployment
 
-## 모드
+Car Log is served **via the INO project** at the `/car/` path on Synology NAS (port 3403).
+NAS auto-pulls the INO repo every 1 minute via cron.
 
-첫 실행 시 **개인용** / **법인/업무용** 선택. 설정(톱니바퀴)에서 언제든 변경 가능.
+**To deploy to NAS:**
+```bash
+cp app/index.html ../ino/app/car/index.html
+# commit + push carlog repo
+# commit + push ino repo → NAS picks up within 1 min
+```
 
-## 프로젝트 구조
+| Stage | Platform |
+|-------|---------|
+| Active | Synology NAS via INO project (`/car/`) |
+| Local dev | `docker compose up --build -d` or open `app/index.html` directly |
+| Next | GCP Cloud Run — `gcloud run deploy --source .` |
+
+## Project Structure
 
 ```
-app/index.html        Car Log 앱 (단일 파일)
-docs/todo.md          기능 진행률
-Dockerfile            nginx:alpine
-docker-compose.yml    로컬 / NAS 배포
-CLAUDE.md             AI 어시스턴트 가이드
+app/
+  index.html        Car Log app (single-file vanilla JS, localStorage, PWA)
+  manifest.json     PWA manifest
+  sw.js             Service worker
+  icon-192.png      PWA icon
+  icon-512.png      PWA icon
+.claude/
+  agents/           Specialized sub-agents (frontend, devops, docs, qa)
+docs/
+  todo.md           Phase progress with completion %
+Dockerfile          nginx:alpine, $PORT-aware
+docker-compose.yml  Local dev / NAS deployment
+CLAUDE.md           AI assistant guide
 ```
+
+## Modes
+
+On first launch, select **개인용 (personal)** or **법인/업무용 (business)**.
+Toggle any time via the gear icon on the home screen.
