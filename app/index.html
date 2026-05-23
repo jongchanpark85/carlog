@@ -49,7 +49,7 @@ button{cursor:pointer;border:none;background:none}
 .nb.on{color:var(--pr)}
 .nb svg{width:22px;height:22px}
 /* ── Appbar ─────────────────────────────────────── */
-.ab{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;position:relative}
+.ab{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
 .ab h1{font-size:20px;font-weight:800;letter-spacing:-.3px}
 .ab-row{display:flex;gap:4px}
 .ib{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--tx2)}
@@ -255,6 +255,12 @@ select.fi{-webkit-appearance:none;appearance:none;background-image:url("data:ima
 </head>
 <body>
 
+<style>
+  .hub-link{display:inline-block;position:fixed;top:max(8px,env(safe-area-inset-top,8px));left:50%;transform:translateX(-50%);background:rgba(127,127,127,0.18);backdrop-filter:blur(10px) saturate(140%);-webkit-backdrop-filter:blur(10px) saturate(140%);color:var(--tx2);text-decoration:none;font-size:10px;letter-spacing:.1em;padding:5px 11px;border-radius:14px;z-index:9999;border:1px solid rgba(127,127,127,0.22);opacity:0.7;transition:opacity .2s;white-space:nowrap}
+  .hub-link:hover,.hub-link:active{opacity:1}
+</style>
+<a class="hub-link" href="/" aria-label="MetaMoni 허브로">HUB</a>
+
 <!-- Update banner -->
 <div id="update-banner">
   <span>새 버전이 준비됐어요</span>
@@ -340,7 +346,6 @@ select.fi{-webkit-appearance:none;appearance:none;background-image:url("data:ima
   <div id="v-home" class="view">
     <div class="ab">
       <h1>차량기록<span id="mode-badge" class="mbadge">법인</span></h1>
-      <a href="/" style="position:absolute;left:50%;transform:translateX(-50%);font-size:11px;font-weight:700;color:var(--txm);border:1px solid var(--bd2);border-radius:20px;padding:4px 14px;text-decoration:none;letter-spacing:.05em;white-space:nowrap">HUB</a>
       <div class="ab-row">
         <button class="ib" onclick="toggleTheme()" title="테마">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
