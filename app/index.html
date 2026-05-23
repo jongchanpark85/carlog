@@ -48,10 +48,6 @@ button{cursor:pointer;border:none;background:none}
 .nb{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 2px;color:var(--txm);font-size:10px;font-weight:600}
 .nb.on{color:var(--pr)}
 .nb svg{width:22px;height:22px}
-/* ── FAB ────────────────────────────────────────── */
-#fab{position:fixed;bottom:calc(var(--nh)+16px+env(safe-area-inset-bottom));right:16px;background:var(--dng);color:#fff;border-radius:50px;height:44px;padding:0 16px;display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;box-shadow:0 4px 16px rgba(220,38,38,.4);z-index:99;transition:transform .1s}
-#fab:active{transform:scale(.95)}
-#fab.hide{display:none}
 /* ── Appbar ─────────────────────────────────────── */
 .ab{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
 .ab h1{font-size:20px;font-weight:800;letter-spacing:-.3px}
@@ -834,11 +830,6 @@ select.fi{-webkit-appearance:none;appearance:none;background-image:url("data:ima
   </button>
 </nav>
 
-<!-- Accident FAB -->
-<button id="fab" class="hide" onclick="go('accident')">
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-  사고 대응
-</button>
 
 <script>
 // ════════════════════════════════════════════════
@@ -1043,8 +1034,6 @@ function updateNavBar(view){
       (id==='vehicles'&&(view==='vehicles'||view==='vehicle-add'||view==='vehicle-detail'))
     );
   });
-  const hasCar=LS.vehicles().length>0;
-  document.getElementById('fab').classList.toggle('hide',!hasCar||['accident','status-add'].includes(view));
 }
 
 // ════════════════════════════════════════════════
