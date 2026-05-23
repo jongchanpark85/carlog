@@ -221,11 +221,20 @@ select.fi{-webkit-appearance:none;appearance:none;background-image:url("data:ima
 .confirm-sheet p{font-size:14px;color:var(--tx2);margin-bottom:20px}
 .confirm-btns{display:flex;gap:8px}
 .confirm-btns .btn{flex:1;height:44px;font-size:14px;margin-top:0}
+/* ── Update banner ──────────────────────────────── */
+#update-banner{position:fixed;top:0;left:0;right:0;background:var(--pr);color:#fff;z-index:1000;transform:translateY(-100%);transition:transform .25s ease;padding:0 16px;height:48px;display:flex;align-items:center;justify-content:space-between;font-size:13px;font-weight:600;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+#update-banner.show{transform:translateY(0)}
 /* ── Toast ──────────────────────────────────────── */
 #toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:var(--tx);color:var(--bg);padding:10px 20px;border-radius:20px;font-size:13px;font-weight:600;z-index:999;display:none;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.2)}
 </style>
 </head>
 <body>
+
+<!-- Update banner -->
+<div id="update-banner">
+  <span>새 버전이 준비됐어요</span>
+  <button onclick="applyUpdate()" style="background:rgba(255,255,255,.25);border-radius:8px;padding:5px 14px;color:#fff;font-weight:700;font-size:12px">새로고침</button>
+</div>
 
 <!-- Toast -->
 <div id="toast"></div>
@@ -632,6 +641,16 @@ select.fi{-webkit-appearance:none;appearance:none;background-image:url("data:ima
     <textarea id="status-desc" class="fi" rows="4" placeholder="어디에 긁힘이 있는지, 어떤 경고등인지 등을 기록하세요"></textarea>
   </div>
 
+  <!-- TIMELINE -->
+  <div id="v-timeline" class="view">
+    <button class="back" onclick="go('home')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><path d="M15 18l-6-6 6-6"/></svg>
+      홈
+    </button>
+    <div class="ab"><h1>차량 타임라인</h1></div>
+    <div id="timeline-list"></div>
+  </div>
+
 </div><!-- #app -->
 
 <!-- Bottom Nav -->
@@ -950,6 +969,10 @@ function renderHome(){
     <button class="qb" style="color:var(--pu)" onclick="go('status-list');renderStatusList()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
       상태 이력
+    </button>
+    <button class="qb" style="color:var(--warn)" onclick="go('timeline')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      타임라인
     </button>
     ${isBiz?`
     <button class="qb" style="color:var(--tl)" onclick="go('drivelog');renderDriveLog()">
@@ -1577,6 +1600,79 @@ function deleteStatus(id){
 }
 
 // ════════════════════════════════════════════════
+// TIMELINE
+// ════════════════════════════════════════════════
+function renderTimeline(){
+  const sel=getSelectedVehicle();
+  const c=document.getElementById('timeline-list');
+  if(!c)return;
+
+  const items=[];
+
+  LS.parking().filter(p=>p.vehicleId===sel?.id).forEach(r=>{
+    const loc=[r.addr,r.floor,r.zone].filter(Boolean).join(' ')||'위치 정보 없음';
+    items.push({ts:r.ts,type:'주차',color:'var(--pr)',bg:'var(--pr-s)',
+      title:loc,sub:r.purpose?(r.purpose==='work'?'업무':'개인'):'',
+      icon:'<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 17V7h4a3 3 0 0 1 0 6H9"/>',
+      photos:r.photos});
+  });
+
+  LS.maintenance().filter(m=>m.vehicleId===sel?.id).forEach(r=>{
+    items.push({ts:r.date,type:'정비',color:'var(--tl)',bg:'var(--tl-s)',
+      title:r.type,sub:[r.shop,r.cost?fmtCost(r.cost):''].filter(Boolean).join(' · '),
+      icon:'<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>',
+      photos:r.photos});
+  });
+
+  LS.accident().filter(a=>a.vehicleId===sel?.id).forEach(r=>{
+    items.push({ts:r.ts,type:'사고',color:'var(--dng)',bg:'var(--dng-s)',
+      title:r.addr||'사고 현장',sub:r.otherPlate||'',
+      icon:'<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>',
+      photos:r.photos});
+  });
+
+  LS.status().filter(s=>s.vehicleId===sel?.id).forEach(r=>{
+    items.push({ts:r.ts,type:'상태',color:'var(--pu)',bg:'var(--pu-s)',
+      title:r.category,sub:r.description||'',
+      icon:'<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>',
+      photos:r.photos});
+  });
+
+  if(LS.mode()==='business'){
+    LS.handover().filter(h=>h.vehicleId===sel?.id).forEach(r=>{
+      items.push({ts:r.ts,type:'인계',color:'var(--tl)',bg:'var(--tl-s)',
+        title:r.type,sub:r.driver+(r.fuel?' · '+r.fuel:''),
+        icon:'<path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>',
+        photos:r.photos});
+    });
+  }
+
+  items.sort((a,b)=>new Date(b.ts)-new Date(a.ts));
+
+  if(!items.length){
+    c.innerHTML=`<div class="empty">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <p>기록이 없어요</p>
+    </div>`;
+    return;
+  }
+
+  c.innerHTML=items.map(item=>`<div class="lc">
+    <div class="lc-row">
+      <div class="lc-icon" style="background:${item.bg}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="${item.color}" stroke-width="2">${item.icon}</svg>
+      </div>
+      <div class="lc-body">
+        <div class="lc-title">${item.title}</div>
+        <div class="lc-sub">${fmtDate(item.ts)} ${fmtTime(item.ts)}${item.sub?' · '+item.sub:''}</div>
+      </div>
+      <span class="rbadge" style="background:${item.bg};color:${item.color}">${item.type}</span>
+    </div>
+    ${item.photos?.length?`<div class="lc-photos">${item.photos.slice(0,4).map(p=>`<img src="${p}" onclick="openLightbox('${p}')">`).join('')}</div>`:''}
+  </div>`).join('');
+}
+
+// ════════════════════════════════════════════════
 // BACKUP / RESTORE
 // ════════════════════════════════════════════════
 function exportData(){
@@ -1661,6 +1757,7 @@ window.go=function(view){
   if(view==='drivelog')renderDriveLog();
   if(view==='handover')renderHandoverList();
   if(view==='status-list')renderStatusList();
+  if(view==='timeline')renderTimeline();
   if(view!=='onboarding'){
     document.querySelector('.bnav').style.display='';
   }
@@ -1668,7 +1765,22 @@ window.go=function(view){
 };
 
 if('serviceWorker' in navigator){
-  navigator.serviceWorker.register('/sw.js').catch(()=>{});
+  navigator.serviceWorker.register('/sw.js').then(reg=>{
+    reg.addEventListener('updatefound',()=>{
+      const worker=reg.installing;
+      worker.addEventListener('statechange',()=>{
+        if(worker.state==='installed'&&navigator.serviceWorker.controller){
+          const banner=document.getElementById('update-banner');
+          banner.classList.add('show');
+          document.getElementById('app').style.top='48px';
+        }
+      });
+    });
+  }).catch(()=>{});
+  navigator.serviceWorker.addEventListener('controllerchange',()=>location.reload());
+}
+function applyUpdate(){
+  navigator.serviceWorker.controller?.postMessage('SKIP_WAITING');
 }
 </script>
 </body>

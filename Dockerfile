@@ -1,4 +1,4 @@
-# INO Project — production-ready static dashboard image.
+# Car Log — production-ready static app image.
 # Designed for portability across local Docker, GCP Cloud Run, and AWS ECS/Fargate/App Runner.
 #
 # Highlights
@@ -27,8 +27,8 @@ COPY app/ /usr/share/nginx/html/
 COPY nginx.conf /etc/nginx/templates/default.conf.template
 
 # Entrypoint: render template, then exec nginx in foreground.
-COPY docker-entrypoint.sh /docker-entrypoint-ino.sh
-RUN chmod +x /docker-entrypoint-ino.sh
+COPY docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
 
 # Cloud Run/App Runner ignore EXPOSE but it's good documentation.
 EXPOSE 3403
@@ -37,5 +37,5 @@ EXPOSE 3403
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD curl -fsS "http://127.0.0.1:${PORT:-3403}/healthz" || exit 1
 
-ENTRYPOINT ["/docker-entrypoint-ino.sh"]
+ENTRYPOINT ["/docker-entrypoint.sh"]
 CMD ["nginx", "-g", "daemon off;"]

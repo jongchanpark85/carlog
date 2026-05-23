@@ -2,21 +2,21 @@
 
 > 진행률은 단계 단위로 갱신합니다.
 
-## 전체 완료율: **73%**
+## 전체 완료율: **58%**
 
-> (88+60+0+0+70)/5 ≈ 44%
+> (100+100+20+0+70)/5 = 58%
 
 | 단계 | 진행률 |
 |------|--------|
-| Phase 1. 핵심 기록 기능 (MVP) | 88% |
-| Phase 2. PWA / 오프라인 | 60% |
-| Phase 3. Docker / NAS 배포 | 0% |
+| Phase 1. 핵심 기록 기능 (MVP) | 100% |
+| Phase 2. PWA / 오프라인 | 100% |
+| Phase 3. Docker / NAS 배포 | 20% |
 | Phase 4. 가족 공유 / 클라우드 백업 | 0% |
 | Phase 5. 법인 고급 기능 | 70% |
 
 ---
 
-## Phase 1. 핵심 기록 기능 MVP (88%)
+## Phase 1. 핵심 기록 기능 MVP (100%)
 
 - [x] 단일 HTML + 바닐라 JS, localStorage 영속화 — 100%
 - [x] 차량 등록 / 편집 / 삭제 / 목록 — 100%
@@ -30,23 +30,23 @@
 - [x] 사진 라이트박스 — 100%
 - [x] 라이트/다크 테마 — 100%
 - [x] 개인/법인 온보딩 + 설정 시트 — 100%
-- [ ] 차량 상태 목록 화면 (이력 조회) — 0%
-- [ ] 데이터 백업/복원 (JSON export/import) — 0%
-- [ ] 차량 타임라인 뷰 (사고·정비·상태 통합) — 0%
+- [x] 차량 상태 목록 화면 (이력 조회) — 100%
+- [x] 데이터 백업/복원 (JSON export/import) — 100%
+- [x] 차량 타임라인 뷰 (주차·정비·사고·상태·인계 통합) — 100%
 
-## Phase 2. PWA / 오프라인 (60%)
+## Phase 2. PWA / 오프라인 (100%)
 
 - [x] manifest.json (이름, 아이콘, 테마) — 100%
-- [ ] sw.js (HTML network-first, 자산 cache-first) — 0%
-- [ ] 192/512 PNG 아이콘 — 0%
+- [x] sw.js (HTML network-first, 자산 cache-first) — 100%
+- [x] 192/512 PNG 아이콘 — 100%
 - [x] 오프라인 동작 (localStorage 기반) — 100%
-- [ ] 새 버전 감지 배너 — 0%
+- [x] 새 버전 감지 배너 — 100%
 
-## Phase 3. Docker / NAS 배포 (0%)
+## Phase 3. Docker / NAS 배포 (20%)
 
-- [ ] Dockerfile (nginx:alpine, $PORT, /healthz) — 0%
-- [ ] docker-compose.yml (NAS bind-mount) — 0%
-- [ ] docker-entrypoint.sh ($PORT 치환) — 0%
+- [x] Dockerfile (nginx:alpine, $PORT, /healthz) — 100%
+- [x] docker-compose.yml (NAS bind-mount) — 100%
+- [x] docker-entrypoint.sh ($PORT 치환) — 100%
 - [ ] NAS 실배포 + 1분 git pull 자동화 — 0%
 
 ## Phase 4. 가족 공유 / 클라우드 백업 (0%)

@@ -1,0 +1,14 @@
+{
+  "name": "차량기록",
+  "short_name": "차량기록",
+  "description": "사진 기반 차량 상태기록 — 주차·정비·사고·상태",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#1a3c6e",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

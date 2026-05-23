@@ -1,12 +1,12 @@
-# INO Project — local dev / NAS deployment.
+# Car Log — local dev / NAS deployment.
 # In production (GCP Cloud Run, AWS ECS/App Runner) the same image is used,
 # but PORT is provided by the platform and no compose file is needed.
 
 services:
-  ino:
+  carlog:
     build: .
-    image: ino-project:local
-    container_name: ino
+    image: carlog:local
+    container_name: carlog
     restart: unless-stopped
     environment:
       # Container listens on $PORT. 3403 is the project's canonical port.
