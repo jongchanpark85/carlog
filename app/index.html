@@ -378,8 +378,12 @@ select.fi{-webkit-appearance:none;appearance:none;background-image:url("data:ima
       뒤로
     </button>
     <div class="ab"><h1>주차 기록</h1>
-      <button class="btn-sm btn-pr" style="display:flex;align-items:center;gap:4px;padding:0 14px;height:36px;border-radius:8px;background:var(--pr);color:#fff;font-weight:700;font-size:13px" onclick="saveParking()">저장</button>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button onclick="go('parking-history');renderParkingHistory()" style="background:var(--card);border:1px solid var(--bd);color:var(--tx1);border-radius:8px;padding:0 14px;height:36px;font-size:13px;font-weight:600">이력</button>
+        <button onclick="saveParking()" style="background:var(--pr);color:#fff;border-radius:8px;padding:0 14px;height:36px;font-size:13px;font-weight:700">저장</button>
+      </div>
     </div>
+    <div id="parking-active-warn"></div>
     <div id="parking-vehicle-info"></div>
     <p class="sec">주차 사진</p>
     <div id="parking-photos" class="pgrid"></div>
@@ -399,11 +403,11 @@ select.fi{-webkit-appearance:none;appearance:none;background-image:url("data:ima
 
   <!-- PARKING HISTORY -->
   <div id="v-parking-history" class="view">
-    <button class="back" onclick="go('home')">
+    <button class="back" onclick="go('parking')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><path d="M15 18l-6-6 6-6"/></svg>
-      홈
+      주차 기록
     </button>
-    <div class="ab"><h1>주차 기록</h1></div>
+    <div class="ab"><h1>주차 이력</h1></div>
     <div id="parking-history-list"></div>
   </div>
 
@@ -1262,8 +1266,27 @@ function exitParking(id){
   const rec=ps.find(p=>p.id===id);
   if(rec){rec.isActive=false;rec.exitTime=new Date().toISOString();}
   LS.saveParking(ps);
+  if(curView==='parking-history')renderParkingHistory();
   renderHome();
   toast('출차 처리됐어요');
+}
+
+function deleteParking(id){
+  if(!confirm('주차 기록을 삭제할까요?'))return;
+  LS.saveParking(LS.parking().filter(p=>p.id!==id));
+  renderParkingHistory();
+  renderHome();
+  toast('삭제됐어요');
+}
+
+function parkDuration(start,end){
+  if(!start||!end)return null;
+  const ms=new Date(end)-new Date(start);
+  if(ms<=0)return null;
+  const h=Math.floor(ms/3600000);
+  const m=Math.floor((ms%3600000)/60000);
+  if(h===0&&m===0)return'1분 미만';
+  return h>0?`${h}시간 ${m}분`:`${m}분`;
 }
 
 // ════════════════════════════════════════════════
@@ -1275,6 +1298,25 @@ function initParkingForm(){
   document.getElementById('parking-memo').value='';
   renderPhotoGrid('parking-photos',parkingPhotos,'addParkingPhoto','removeParkingPhoto');
   renderVehicleChip('parking-vehicle-info',getSelectedVehicle());
+
+  // Active parking warning
+  const warnEl=document.getElementById('parking-active-warn');
+  if(warnEl){
+    const sel2=getSelectedVehicle();
+    const active=LS.parking().find(p=>p.vehicleId===sel2?.id&&p.isActive);
+    if(active){
+      const loc=[active.floor,active.addr].filter(Boolean).join('  ');
+      warnEl.innerHTML=`<div style="background:var(--warn-s);border:1px solid rgba(217,119,6,.25);border-radius:12px;padding:11px 14px;margin-bottom:14px;display:flex;align-items:flex-start;gap:10px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18" style="color:var(--warn);flex-shrink:0;margin-top:1px"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <div>
+          <div style="font-size:13px;font-weight:700;color:var(--warn)">현재 주차 중</div>
+          <div style="font-size:12px;color:var(--tx2);margin-top:2px">${loc?loc+'  ·  ':''}저장 시 기존 주차가 자동 출차됩니다</div>
+        </div>
+      </div>`;
+    } else {
+      warnEl.innerHTML='';
+    }
+  }
 
   // Floor chips
   const fc=document.getElementById('floor-chips');
@@ -1341,30 +1383,43 @@ function saveParking(){
 // ════════════════════════════════════════════════
 function renderParkingHistory(){
   const sel=getSelectedVehicle();
-  const ps=LS.parking().filter(p=>p.vehicleId===sel?.id);
+  const ps=LS.parking().filter(p=>p.vehicleId===sel?.id).sort((a,b)=>new Date(b.ts)-new Date(a.ts));
   const c=document.getElementById('parking-history-list');
   if(!c)return;
-  if(!ps.length){c.innerHTML=`<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 17V7h4a3 3 0 0 1 0 6H9"/></svg><p>주차 기록이 없어요</p></div>`;return;}
+  if(!ps.length){
+    c.innerHTML=`<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 17V7h4a3 3 0 0 1 0 6H9"/></svg><p>주차 기록이 없어요</p><button class="btn btn-pr" style="max-width:180px;margin:8px auto 0" onclick="go('parking')">첫 주차 기록하기</button></div>`;
+    return;
+  }
   c.innerHTML=ps.map(r=>{
-    const loc=[r.addr,r.floor,r.zone].filter(Boolean).join(' ')||'위치 정보 없음';
-    const photos=r.photos?.slice(0,4)||[];
+    const addrParts=[r.floor?`<strong>${r.floor}</strong>`:null,r.zone||null,r.addr||null].filter(Boolean);
+    const locText=addrParts.length?addrParts.join('&ensp;·&ensp;'):'위치 정보 없음';
+    const photos=r.photos?.slice(0,5)||[];
+    const dur=r.isActive?null:parkDuration(r.ts,r.exitTime);
+    const mapUrl=r.lat&&r.lng?`https://maps.google.com/maps?q=${r.lat},${r.lng}`:null;
+    const exitTimeStr=r.exitTime?`출차 ${fmtDate(r.exitTime)} ${fmtTime(r.exitTime)}`:'';
     return`<div class="lc">
-      <div class="lc-row">
+      <div class="lc-row" style="align-items:flex-start">
         <div class="lc-icon" style="background:var(--pr-s)">
           <svg viewBox="0 0 24 24" fill="none" stroke="var(--pr)" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 17V7h4a3 3 0 0 1 0 6H9"/></svg>
         </div>
         <div class="lc-body">
-          <div class="lc-title">${fmtDate(r.ts)} ${fmtTime(r.ts)}</div>
-          <div class="lc-sub">${loc}</div>
-          <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:4px">
+          <div class="lc-title">${fmtDate(r.ts)}&ensp;${fmtTime(r.ts)}</div>
+          <div class="lc-sub" style="margin-top:3px">${locText}</div>
+          ${exitTimeStr?`<div style="font-size:11px;color:var(--txm);margin-top:2px">${exitTimeStr}</div>`:''}
+          <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:6px">
             ${r.isActive?'<span class="lc-badge" style="background:var(--ok-s);color:var(--ok)">주차 중</span>':''}
+            ${dur?`<span class="lc-badge" style="background:var(--pr-s);color:var(--pr)">⏱ ${dur}</span>`:''}
             ${r.purpose?`<span class="lc-badge ${r.purpose==='work'?'pur-w':'pur-p'}">${r.purpose==='work'?'업무':'개인'}</span>`:''}
           </div>
-          ${r.memo?`<div style="font-size:12px;color:var(--tx2);margin-top:4px">${r.memo}</div>`:''}
+          ${r.memo?`<div style="font-size:12px;color:var(--tx2);margin-top:6px;padding:8px 10px;background:var(--bg2);border-radius:8px">${r.memo}</div>`:''}
         </div>
-        ${r.isActive?`<button onclick="exitParking('${r.id}')" style="background:var(--ok);color:#fff;border-radius:8px;padding:6px 10px;font-size:12px;font-weight:700;flex-shrink:0;height:fit-content">출차</button>`:''}
       </div>
       ${photos.length?`<div class="lc-photos" style="margin-top:10px">${photos.map(p=>`<img src="${p}" onclick="openLightbox('${p}')">`).join('')}</div>`:''}
+      <div style="display:flex;gap:8px;margin-top:12px;padding-top:10px;border-top:1px solid var(--bd)">
+        ${r.isActive?`<button onclick="exitParking('${r.id}')" style="flex:1;background:var(--ok);color:#fff;border-radius:8px;padding:8px 0;font-size:12px;font-weight:700">출차</button>`:''}
+        ${mapUrl?`<a href="${mapUrl}" target="_blank" rel="noopener" style="flex:1;background:var(--pr-s);color:var(--pr);border-radius:8px;padding:8px 0;font-size:12px;font-weight:700;text-align:center;text-decoration:none;display:block">지도 열기</a>`:''}
+        <button onclick="deleteParking('${r.id}')" style="flex:1;background:var(--dng-s);color:var(--dng);border-radius:8px;padding:8px 0;font-size:12px;font-weight:700">삭제</button>
+      </div>
     </div>`;
   }).join('');
 }
