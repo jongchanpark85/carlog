@@ -975,11 +975,13 @@ function _loadTesseract(){
 function _parseParkingText(raw){
   const t=raw.toUpperCase().replace(/\s+/g,' ');
   let floor=null,zone=null;
-  const mb=/B\s*([1-9])/.exec(t);if(mb)floor=`B${mb[1]}`;
-  if(!floor){const mf=/([1-8])\s*F/.exec(t);if(mf)floor=`${mf[1]}F`;}
+  // \b prevents matching mid-word (e.g. CURB2 → not B2); \s{0,2} limits space artifacts
+  const mb=/\bB\s{0,2}([1-9])/.exec(t);if(mb)floor=`B${mb[1]}`;
+  // \b on both sides prevents 28F → 8F false extraction
+  if(!floor){const mf=/\b([1-8])\s{0,2}F\b/.exec(t);if(mf)floor=`${mf[1]}F`;}
   if(!floor&&t.includes('ROOF'))floor='옥상';
   const usedLetter=floor?floor[0]:null;
-  const mz=/([A-Z])\s*-\s*(\d{1,3})/.exec(t);
+  const mz=/\b([A-Z])\s*-\s*(\d{1,3})\b/.exec(t);
   if(mz&&mz[1]!==usedLetter)zone=`${mz[1]}-${mz[2]}`;
   return{floor,zone};
 }
