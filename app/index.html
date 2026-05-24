@@ -69,12 +69,25 @@ button{cursor:pointer;border:none;background:none}
 .qb{background:var(--card);border:1px solid var(--bd);border-radius:var(--r);padding:14px 8px;display:flex;flex-direction:column;align-items:center;gap:8px;font-size:12px;font-weight:600;transition:opacity .1s}
 .qb:active{opacity:.65}
 .qb svg{width:28px;height:28px}
-/* ── Parking banner ─────────────────────────────── */
-.pb{background:var(--ok-s);border:1px solid rgba(22,163,74,.2);border-radius:var(--rs);padding:12px 14px;display:flex;align-items:center;gap:10px;margin-bottom:12px}
-.pb .pi{flex:1;min-width:0}
-.pb .pl{font-size:13px;font-weight:600;color:var(--ok);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.pb .pt{font-size:11px;color:var(--txm)}
-.pb .ex{background:var(--ok);color:#fff;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;white-space:nowrap;flex-shrink:0}
+/* ── Parking widget ──────────────────────────────── */
+.pw{background:var(--ok-s);border:1.5px solid rgba(22,163,74,.3);border-radius:16px;padding:14px 16px;margin:12px 0 4px;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:opacity .1s}
+.pw:active{opacity:.82}
+.pw-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.pw-label{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:800;color:var(--ok);letter-spacing:.1em;text-transform:uppercase}
+.pw-dot{width:8px;height:8px;border-radius:50%;background:var(--ok);animation:pw-pulse 2s ease-in-out infinite;flex-shrink:0}
+@keyframes pw-pulse{0%,100%{opacity:1}50%{opacity:.3}}
+@media(prefers-reduced-motion:reduce){.pw-dot{animation:none}}
+.pw-exit{background:var(--ok);color:#fff;border-radius:20px;padding:7px 16px;font-size:13px;font-weight:700;flex-shrink:0}
+.pw-exit:active{opacity:.75}
+.pw-bd{display:flex;gap:12px;align-items:flex-start}
+.pw-photo{width:88px;height:88px;object-fit:cover;border-radius:10px;flex-shrink:0;cursor:zoom-in}
+.pw-noimg{width:52px;height:52px;border-radius:12px;background:rgba(22,163,74,.15);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.pw-info{flex:1;min-width:0}
+.pw-floor{font-size:26px;font-weight:900;color:var(--ok);line-height:1.15;letter-spacing:-.02em}
+.pw-nofloor{font-size:15px;font-weight:700;color:var(--ok)}
+.pw-addr{font-size:13px;color:var(--tx1);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pw-sub{font-size:11px;color:var(--txm);margin-top:2px}
+.pw-elapsed{display:inline-flex;align-items:center;gap:4px;margin-top:8px;background:rgba(22,163,74,.12);border-radius:20px;padding:4px 10px;font-size:12px;font-weight:700;color:var(--ok);font-variant-numeric:tabular-nums}
 /* ── Record tile ────────────────────────────────── */
 .rt{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--bd)}
 .rt:last-child{border-bottom:none}
@@ -919,6 +932,24 @@ function toast(msg,dur=2500){
   _toastTimer=setTimeout(()=>{el.style.display='none'},dur);
 }
 
+let _parkTimer=null;
+function _clearParkTimer(){if(_parkTimer){clearInterval(_parkTimer);_parkTimer=null;}}
+function _startParkTimer(ts){
+  _clearParkTimer();
+  const el=document.getElementById('pw-elapsed-time');
+  if(!el)return;
+  function tick(){
+    const ms=Date.now()-new Date(ts).getTime();
+    if(ms<0){el.textContent='방금 주차';return;}
+    const h=Math.floor(ms/3600000);
+    const m=Math.floor((ms%3600000)/60000);
+    const s=Math.floor((ms%60000)/1000);
+    el.textContent=h>0?`${h}시간 ${m}분`:`${m}분 ${s}초`;
+  }
+  tick();
+  _parkTimer=setInterval(tick,1000);
+}
+
 function copyText(t){
   navigator.clipboard?.writeText(t).then(()=>toast(`${t} 복사됨`)).catch(()=>toast(t));
 }
@@ -1019,6 +1050,7 @@ function renderLocRow(id,lat,addr,loading){
 const NAV_TABS=['home','parking','maintenance','vehicles'];
 
 function go(view){
+  if(view!=='home')_clearParkTimer();
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   document.getElementById('v-'+view)?.classList.add('active');
   curView=view;
@@ -1107,21 +1139,30 @@ function renderHome(){
     </div>
   </div>`;
 
-  // Active parking banner
+  // Active parking widget
   if(active){
     const addr=[active.addr,active.zone].filter(Boolean).join(' ');
     const photo=active.photos?.[0];
-    html+=`<div class="pb" style="margin-top:12px;align-items:flex-start">
-      ${photo
-        ?`<img src="${photo}" onclick="openLightbox('${photo}')" style="width:60px;height:60px;object-fit:cover;border-radius:8px;flex-shrink:0;cursor:zoom-in">`
-        :`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="20" height="20" style="color:var(--ok);flex-shrink:0;margin-top:2px"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 17V7h4a3 3 0 0 1 0 6H9"/></svg>`
-      }
-      <div class="pi">
-        <div class="pl">현재 주차 중${addr?' — '+addr:''}</div>
-        ${active.floor?`<div style="font-size:15px;font-weight:800;color:var(--ok);line-height:1.3">${active.floor}</div>`:''}
-        <div class="pt">${fmtTime(active.ts)} 주차</div>
+    html+=`<div class="pw" onclick="navTo('parking')">
+      <div class="pw-hd">
+        <div class="pw-label"><span class="pw-dot"></span>주차 중</div>
+        <button class="pw-exit" onclick="event.stopPropagation();exitParking('${active.id}')">출차</button>
       </div>
-      <button class="ex" onclick="event.stopPropagation();exitParking('${active.id}')" style="margin-top:2px">출차</button>
+      <div class="pw-bd">
+        ${photo
+          ?`<img class="pw-photo" src="${photo}" onclick="event.stopPropagation();openLightbox('${photo}')">`
+          :`<div class="pw-noimg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="22" height="22" style="color:var(--ok)"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 17V7h4a3 3 0 0 1 0 6H9"/></svg></div>`
+        }
+        <div class="pw-info">
+          ${active.floor?`<div class="pw-floor">${active.floor}</div>`:`<div class="pw-nofloor">주차 중</div>`}
+          ${addr?`<div class="pw-addr">${addr}</div>`:''}
+          <div class="pw-sub">${fmtDate(active.ts)} ${fmtTime(active.ts)} 주차 시작</div>
+          <div class="pw-elapsed">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="12" height="12"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <span id="pw-elapsed-time">—</span>
+          </div>
+        </div>
+      </div>
     </div>`;
   }
 
@@ -1197,6 +1238,7 @@ function renderHome(){
 
   c.innerHTML=html;
   updateNavBar('home');
+  if(active)_startParkTimer(active.ts);else _clearParkTimer();
 }
 
 function openVModal(){
