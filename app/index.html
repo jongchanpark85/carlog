@@ -1061,16 +1061,13 @@ async function _ocrWithGemini(imgData,apiKey){
 }
 
 async function _ocrRawText(imgData){
-  // 0. Gemini Vision — if API key configured in settings
+  // 0. Gemini Vision — if API key set, use ONLY Gemini (fast + accurate)
   const geminiKey=LS.cfg().geminiKey;
   if(geminiKey){
-    try{
-      const text=await _ocrWithGemini(imgData,geminiKey);
-      if(text&&!text.toLowerCase().includes('floor: none'))
-        return{text,engine:'Gemini AI'};
-    }catch(e){console.warn('Gemini OCR 실패:',e);}
+    const text=await _ocrWithGemini(imgData,geminiKey);
+    return{text:text||'',engine:'Gemini AI'};
   }
-  // 1. Native TextDetector — instant, no download, uses device OCR (Chrome/Android)
+  // 1. Native TextDetector
   if('TextDetector' in window){
     try{
       const img=new Image();
@@ -1081,7 +1078,7 @@ async function _ocrRawText(imgData){
       if(t.trim())return{text:t,engine:'기기 내장 OCR'};
     }catch(e){console.warn('TextDetector 실패:',e);}
   }
-  // 2. Tesseract.js v2 — normal pass, then inverted if floor not found
+  // 2. Tesseract.js v2
   await new Promise((res,rej)=>{
     if(typeof Tesseract!=='undefined'){res();return;}
     const s=document.createElement('script');
@@ -1091,7 +1088,6 @@ async function _ocrRawText(imgData){
   });
   const norm=await _preprocessForOCR(imgData,false);
   let text=await _runTesseract(norm);
-  // Inverted pass: helps when sign has white text on dark background
   if(!_parseParkingText(text).floor){
     const inv=await _preprocessForOCR(imgData,true);
     const t2=await _runTesseract(inv);
@@ -1105,8 +1101,9 @@ async function runParkingOCR(imgData){
   const resultEl=document.getElementById('parking-ocr-result');
   if(!resultEl)return;
   resultEl.style.display='';
-  const nativeOCR='TextDetector' in window;
-  resultEl.innerHTML=`<div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--txm)"><div class="spin" style="width:14px;height:14px;flex-shrink:0"></div>${nativeOCR?'텍스트 인식 중...':'텍스트 인식 중... (최초 실행 시 10~20초 소요)'}</div>`;
+  const hasGemini=!!LS.cfg().geminiKey;
+  const loadMsg=hasGemini?'Gemini AI 인식 중...':('TextDetector' in window)?'텍스트 인식 중...':'텍스트 인식 중... (최초 실행 시 10~20초 소요)';
+  resultEl.innerHTML=`<div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--txm)"><div class="spin" style="width:14px;height:14px;flex-shrink:0"></div>${loadMsg}</div>`;
   try{
     const{text,engine}=await _ocrRawText(imgData);
     const clean=text.replace(/[^A-Z0-9\-\s]/gi,' ').replace(/\s+/g,' ').trim();
