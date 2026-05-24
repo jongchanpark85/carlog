@@ -1041,24 +1041,44 @@ async function _runTesseract(imgData){
   }
 }
 
+function _shrinkForGemini(imgData){
+  return new Promise(res=>{
+    const img=new Image();
+    img.onload=()=>{
+      const MAX=480;
+      const scale=Math.min(1,MAX/Math.max(img.width,img.height));
+      const c=document.createElement('canvas');
+      c.width=Math.round(img.width*scale);
+      c.height=Math.round(img.height*scale);
+      c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+      res(c.toDataURL('image/jpeg',0.6));
+    };
+    img.src=imgData;
+  });
+}
+
 async function _ocrWithGemini(imgData,apiKey){
-  const base64=imgData.split(',')[1];
-  const mime=imgData.split(';')[0].split(':')[1]||'image/jpeg';
+  const small=await _shrinkForGemini(imgData);
+  const base64=small.split(',')[1];
   const res=await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-8b-latest:generateContent?key=${encodeURIComponent(apiKey)}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${encodeURIComponent(apiKey)}`,
     {method:'POST',headers:{'Content-Type':'application/json'},
      body:JSON.stringify({
        contents:[{parts:[
          {text:'This is a parking garage photo. Find the parking floor level (B1-B9 or 1F-8F or ROOF) and zone/section (like A-15 or A12). Reply ONLY in this exact format: "FLOOR: B2 ZONE: A12" or "FLOOR: B2" if no zone. Use "none" for not found.'},
-         {inlineData:{mimeType:mime,data:base64}}
+         {inlineData:{mimeType:'image/jpeg',data:base64}}
        ]}],
        generationConfig:{maxOutputTokens:30,temperature:0}
      })
   });
   if(!res.ok){
     const body=await res.text();
-    const hints={401:'API 키가 잘못됐어요',403:'API 키 권한 없음 — AI Studio에서 키 확인',429:'일일 한도 초과 — 내일 다시 시도하거나 Google Cloud 콘솔에서 할당량 확인'};
-    throw new Error(`Gemini ${res.status}: ${hints[res.status]||body.slice(0,120)}`);
+    const hints={
+      401:'API 키가 잘못됐어요 — 설정에서 다시 입력',
+      403:'API 키 권한 없음 — AI Studio에서 키 확인',
+      429:'한도 초과 — 새 프로젝트를 만들고 거기서 키를 발급받으세요 (기존 프로젝트와 할당량 공유됨)',
+    };
+    throw new Error(hints[res.status]||`Gemini ${res.status}: ${body.slice(0,100)}`);
   }
   const json=await res.json();
   return json.candidates?.[0]?.content?.parts?.[0]?.text?.trim()||'';
