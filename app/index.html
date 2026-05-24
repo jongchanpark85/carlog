@@ -962,22 +962,10 @@ function copyText(t){
 // ════════════════════════════════════════════════
 // PARKING OCR  (Tesseract.js lazy-loaded from CDN)
 // ════════════════════════════════════════════════
-function _loadTesseract(){
-  if(typeof Tesseract!=='undefined')return Promise.resolve();
-  return new Promise((res,rej)=>{
-    const s=document.createElement('script');
-    s.src='https://unpkg.com/tesseract.js@4/dist/tesseract.min.js';
-    s.onload=res;s.onerror=rej;
-    document.head.appendChild(s);
-  });
-}
-
 function _parseParkingText(raw){
   const t=raw.toUpperCase().replace(/\s+/g,' ');
   let floor=null,zone=null;
-  // \b prevents matching mid-word (e.g. CURB2 → not B2); \s{0,2} limits space artifacts
   const mb=/\bB\s{0,2}([1-9])/.exec(t);if(mb)floor=`B${mb[1]}`;
-  // \b on both sides prevents 28F → 8F false extraction
   if(!floor){const mf=/\b([1-8])\s{0,2}F\b/.exec(t);if(mf)floor=`${mf[1]}F`;}
   if(!floor&&t.includes('ROOF'))floor='옥상';
   const usedLetter=floor?floor[0]:null;
@@ -986,37 +974,78 @@ function _parseParkingText(raw){
   return{floor,zone};
 }
 
+function _preprocessForOCR(imgData){
+  return new Promise(res=>{
+    const img=new Image();
+    img.onload=()=>{
+      const c=document.createElement('canvas');
+      c.width=img.width;c.height=img.height;
+      const ctx=c.getContext('2d');
+      // Grayscale + high contrast improves OCR accuracy on parking signs
+      ctx.filter='grayscale(1) contrast(2.5)';
+      ctx.drawImage(img,0,0);
+      res(c.toDataURL('image/png'));
+    };
+    img.src=imgData;
+  });
+}
+
+async function _ocrRawText(imgData){
+  // 1. Native TextDetector — instant, no download, uses device OCR (Chrome/Android)
+  if('TextDetector' in window){
+    try{
+      const img=new Image();
+      await new Promise((r,j)=>{img.onload=r;img.onerror=j;img.src=imgData;});
+      const det=new TextDetector();
+      const rs=await det.detect(img);
+      const t=rs.map(r=>r.rawValue).join(' ');
+      if(t.trim())return{text:t,engine:'기기 내장 OCR'};
+    }catch{}
+  }
+  // 2. Tesseract.js — explicit CDN paths prevent 404 on app server
+  await new Promise((res,rej)=>{
+    if(typeof Tesseract!=='undefined'){res();return;}
+    const s=document.createElement('script');
+    s.src='https://unpkg.com/tesseract.js@4.1.1/dist/tesseract.min.js';
+    s.onload=res;s.onerror=()=>rej(new Error('Tesseract 로드 실패 (네트워크 확인)'));
+    document.head.appendChild(s);
+  });
+  const processed=await _preprocessForOCR(imgData);
+  const{data:{text}}=await Tesseract.recognize(processed,'eng',{
+    workerPath:'https://unpkg.com/tesseract.js@4.1.1/dist/worker.min.js',
+    langPath:'https://tessdata.projectnaptha.com/4.0.0',
+    corePath:'https://unpkg.com/tesseract.js-core@4.0.4/tesseract-core-lstm.wasm.js',
+    logger:()=>{}
+  });
+  return{text,engine:'Tesseract.js'};
+}
+
 async function runParkingOCR(imgData){
   const resultEl=document.getElementById('parking-ocr-result');
   if(!resultEl)return;
-  resultEl.innerHTML=`<div style="display:flex;align-items:center;gap:8px;color:var(--txm);font-size:12px"><div class="spin" style="width:14px;height:14px;flex-shrink:0"></div>사진에서 텍스트 인식 중...</div>`;
   resultEl.style.display='';
+  const nativeOCR='TextDetector' in window;
+  resultEl.innerHTML=`<div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--txm)"><div class="spin" style="width:14px;height:14px;flex-shrink:0"></div>${nativeOCR?'텍스트 인식 중...':'텍스트 인식 중... (최초 실행 시 10~20초 소요)'}</div>`;
   try{
-    await _loadTesseract();
-    const w=await Tesseract.createWorker('eng',1,{logger:()=>{}});
-    const{data:{text,words}}=await w.recognize(imgData);
-    await w.terminate();
+    const{text,engine}=await _ocrRawText(imgData);
     const clean=text.replace(/[^A-Z0-9\-\s]/gi,' ').replace(/\s+/g,' ').trim();
     parkingOcrText=clean||null;
     const{floor,zone}=_parseParkingText(text);
-    // Auto-apply
     if(floor)selectFloor(floor);
     if(zone&&!document.getElementById('zone-input').value)
       document.getElementById('zone-input').value=zone;
-    // Show result card
-    const detected=[];
-    if(floor)detected.push(`<span style="background:var(--ok-s);color:var(--ok);border-radius:6px;padding:2px 8px;font-weight:700">${floor}</span>`);
-    if(zone)detected.push(`<span style="background:var(--pr-s);color:var(--pr);border-radius:6px;padding:2px 8px;font-weight:700">${zone}</span>`);
-    const detectedHtml=detected.length?`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px">${detected.join('')}</div>`:'';
+    const badges=[];
+    if(floor)badges.push(`<span style="background:var(--ok-s);color:var(--ok);border-radius:6px;padding:2px 9px;font-weight:700">${floor}</span>`);
+    if(zone)badges.push(`<span style="background:var(--pr-s);color:var(--pr);border-radius:6px;padding:2px 9px;font-weight:700">${zone}</span>`);
+    const badgeHtml=badges.length?`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px">${badges.join('')}</div>`:'';
     const rawHtml=clean?`<div style="font-size:11px;color:var(--txm);word-break:break-all;line-height:1.5">${clean}</div>`:'';
-    if(!clean){
-      resultEl.innerHTML=`<div style="font-size:12px;color:var(--txm)">텍스트를 인식하지 못했어요</div>`;
-    } else {
-      resultEl.innerHTML=`<div style="font-size:11px;font-weight:700;color:var(--tx2);margin-bottom:5px;letter-spacing:.04em">OCR 인식 결과</div>${detectedHtml}${rawHtml}`;
-    }
-  }catch{
+    const engHtml=`<div style="font-size:10px;color:var(--txm);margin-top:4px;opacity:.6">${engine}</div>`;
+    resultEl.innerHTML=clean
+      ?`<div style="font-size:11px;font-weight:700;color:var(--tx2);margin-bottom:5px">OCR 인식 결과</div>${badgeHtml}${rawHtml}${engHtml}`
+      :`<div style="font-size:12px;color:var(--txm)">텍스트를 인식하지 못했어요</div><button onclick="runParkingOCR(parkingPhotos[0])" style="margin-top:6px;font-size:12px;color:var(--pr);background:none;padding:0;text-decoration:underline">다시 인식</button>`;
+  }catch(e){
     parkingOcrText=null;
-    resultEl.innerHTML=`<div style="font-size:12px;color:var(--txm)">인식 실패 — 직접 선택해 주세요</div>`;
+    resultEl.innerHTML=`<div style="font-size:12px;color:var(--dng)">OCR 실패: ${e.message||'알 수 없는 오류'}</div><button onclick="runParkingOCR(parkingPhotos[0])" style="margin-top:6px;font-size:12px;color:var(--pr);background:none;padding:0;text-decoration:underline">다시 시도</button>`;
   }
 }
 
