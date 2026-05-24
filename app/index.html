@@ -295,6 +295,16 @@ select.fi{-webkit-appearance:none;appearance:none;background-image:url("data:ima
       <span class="sl">테마</span>
       <button class="sbtn" onclick="toggleTheme()">테마 변경</button>
     </div>
+    <div class="srow" style="flex-direction:column;align-items:flex-start;gap:6px">
+      <span class="sl">Gemini API 키 <span style="font-size:11px;color:var(--txm)">(사진 OCR 정확도 향상)</span></span>
+      <div style="display:flex;gap:6px;width:100%">
+        <input id="gemini-key-input" type="password" placeholder="AIza..." autocomplete="off"
+          style="flex:1;padding:8px 10px;border:1.5px solid var(--bd);border-radius:8px;background:var(--bg2);color:var(--tx);font-size:13px"
+          oninput="saveGeminiKey(this.value)">
+        <button class="sbtn" onclick="document.getElementById('gemini-key-input').type=document.getElementById('gemini-key-input').type==='password'?'text':'password'">표시</button>
+      </div>
+      <span style="font-size:11px;color:var(--txm)">키 없으면 Tesseract.js 사용 · <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:var(--pr)">무료 발급</a></span>
+    </div>
     <div class="srow">
       <span class="sl">데이터 백업</span>
       <button class="sbtn" onclick="exportData()">내보내기</button>
@@ -1031,7 +1041,35 @@ async function _runTesseract(imgData){
   }
 }
 
+async function _ocrWithGemini(imgData,apiKey){
+  const base64=imgData.split(',')[1];
+  const mime=imgData.split(';')[0].split(':')[1]||'image/jpeg';
+  const res=await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${encodeURIComponent(apiKey)}`,
+    {method:'POST',headers:{'Content-Type':'application/json'},
+     body:JSON.stringify({
+       contents:[{parts:[
+         {text:'This is a parking garage photo. Find the parking floor level (B1-B9 or 1F-8F or ROOF) and zone/section (like A-15 or A12). Reply ONLY in this exact format: "FLOOR: B2 ZONE: A12" or "FLOOR: B2" if no zone. Use "none" for not found.'},
+         {inlineData:{mimeType:mime,data:base64}}
+       ]}],
+       generationConfig:{maxOutputTokens:30,temperature:0}
+     })
+  });
+  if(!res.ok){const e=await res.text();throw new Error(`Gemini ${res.status}: ${e.slice(0,100)}`);}
+  const json=await res.json();
+  return json.candidates?.[0]?.content?.parts?.[0]?.text?.trim()||'';
+}
+
 async function _ocrRawText(imgData){
+  // 0. Gemini Vision — if API key configured in settings
+  const geminiKey=LS.cfg().geminiKey;
+  if(geminiKey){
+    try{
+      const text=await _ocrWithGemini(imgData,geminiKey);
+      if(text&&!text.toLowerCase().includes('floor: none'))
+        return{text,engine:'Gemini AI'};
+    }catch(e){console.warn('Gemini OCR 실패:',e);}
+  }
   // 1. Native TextDetector — instant, no download, uses device OCR (Chrome/Android)
   if('TextDetector' in window){
     try{
@@ -2292,10 +2330,18 @@ function updateModeBadge(){
   if(badge)badge.style.display=LS.mode()==='business'?'':'none';
 }
 
+function saveGeminiKey(val){
+  const cfg=LS.cfg();
+  cfg.geminiKey=val.trim();
+  LS.saveCfg(cfg);
+}
+
 function openSettings(){
   const mode=LS.mode();
   document.getElementById('mode-toggle-btn').textContent=
     mode==='business'?'개인용으로 변경':'법인/업무용으로 변경';
+  const keyEl=document.getElementById('gemini-key-input');
+  if(keyEl)keyEl.value=LS.cfg().geminiKey||'';
   document.getElementById('settings-modal').style.display='flex';
 }
 function closeSettings(){document.getElementById('settings-modal').style.display='none';}
