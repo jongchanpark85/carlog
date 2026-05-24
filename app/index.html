@@ -974,8 +974,16 @@ function _parseParkingText(raw){
   if(!floor){const mf=/\b([1-8])\s{0,2}F\b/.exec(t);if(mf)floor=`${mf[1]}F`;}
   if(!floor&&t.includes('ROOF'))floor='옥상';
   const usedLetter=floor?floor[0]:null;
-  const mz=/\b([A-Z])\s*-\s*(\d{1,3})\b/.exec(t);
-  if(mz&&mz[1]!==usedLetter)zone=`${mz[1]}-${mz[2]}`;
+  let zone=null;
+  // Pass 1: letter-dash-number — most reliable, any letter
+  const re1=/\b([A-Z])\s*-\s*([1-9]\d{0,2})\b/g;
+  let zm;
+  while((zm=re1.exec(t))!==null){if(zm[1]!==usedLetter){zone=`${zm[1]}-${zm[2]}`;break;}}
+  // Pass 2: no-dash fallback — restrict to letters that can't be label/misread (no B,F,I,L,O,P)
+  if(!zone){
+    const re2=/\b([ACDEG-HJ-KMNQR-Z])([1-9]\d{0,2})\b/g;
+    while((zm=re2.exec(t))!==null){if(zm[1]!==usedLetter){zone=`${zm[1]}-${zm[2]}`;break;}}
+  }
   return{floor,zone};
 }
 
@@ -1007,7 +1015,7 @@ async function _ocrRawText(imgData){
       if(t.trim())return{text:t,engine:'기기 내장 OCR'};
     }catch(e){console.warn('TextDetector 실패:',e);}
   }
-  // 2. Tesseract.js v2 — uses asm.js fallback, no SharedArrayBuffer required
+  // 2. Tesseract.js v2 — PSM 11 (sparse text) + char whitelist + confidence filter
   await new Promise((res,rej)=>{
     if(typeof Tesseract!=='undefined'){res();return;}
     const s=document.createElement('script');
@@ -1016,13 +1024,27 @@ async function _ocrRawText(imgData){
     document.head.appendChild(s);
   });
   const processed=await _preprocessForOCR(imgData);
-  const result=await Tesseract.recognize(processed,'eng',{
+  const worker=Tesseract.createWorker({
     workerPath:'https://unpkg.com/tesseract.js@2.1.1/dist/worker.min.js',
     langPath:'https://tessdata.projectnaptha.com/4.0.0_fast',
     corePath:'https://unpkg.com/tesseract.js-core@2.2.0/tesseract-core.wasm.js',
     logger:()=>{}
   });
-  return{text:result.data.text,engine:'Tesseract.js'};
+  await worker.load();
+  await worker.loadLanguage('eng');
+  await worker.initialize('eng');
+  await worker.setParameters({
+    tessedit_char_whitelist:'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 -',
+    tessedit_pageseg_mode:'11',
+  });
+  const{data}=await worker.recognize(processed);
+  await worker.terminate();
+  // Only keep words with confidence ≥ 50 to filter background noise
+  const filtered=data.words
+    .filter(w=>w.confidence>=50)
+    .map(w=>w.text)
+    .join(' ');
+  return{text:filtered||data.text,engine:'Tesseract.js'};
 }
 
 async function runParkingOCR(imgData){

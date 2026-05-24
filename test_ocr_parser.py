@@ -21,9 +21,18 @@ def parse_parking_text(raw):
         floor = '옥상'
 
     used_letter = floor[0] if floor else None
-    mz = re.search(r'\b([A-Z])\s*-\s*(\d{1,3})\b', t)
-    if mz and mz.group(1) != used_letter:
-        zone = f'{mz.group(1)}-{mz.group(2)}'
+    zone = None
+    # Pass 1: with dash — any letter
+    for m in re.finditer(r'\b([A-Z])\s*-\s*([1-9]\d{0,2})\b', t):
+        if m.group(1) != used_letter:
+            zone = f'{m.group(1)}-{m.group(2)}'
+            break
+    # Pass 2: no dash — restrict to unambiguous letters (exclude B,F,I,L,O,P)
+    if not zone:
+        for m in re.finditer(r'\b([ACDEG-HJ-KMNQR-Z])([1-9]\d{0,2})\b', t):
+            if m.group(1) != used_letter:
+                zone = f'{m.group(1)}-{m.group(2)}'
+                break
 
     return floor, zone
 
@@ -39,6 +48,7 @@ TESTS = [
     ('3 F',                  '3F',   None,   '공백 3 F'),
     ('LEVEL 2F',             '2F',   None,   'LEVEL 접두'),
     ('B2 A-15',              'B2',   'A-15', '층+구역 B2 A-15'),
+    ('B2 A12',               'B2',   'A-12', '대시없는 구역 B2 A12'),
     ('B3 C-27',              'B3',   'C-27', 'C구역'),
     ('1F A-3',               '1F',   'A-3',  '지상 1F + 구역'),
     ('ROOF',                 '옥상', None,   '옥상'),
