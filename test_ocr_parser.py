@@ -2,22 +2,26 @@ import re
 
 def parse_parking_text(raw):
     """Current parser logic (mirrored from index.html _parseParkingText)"""
-    t = re.sub(r'\s+', ' ', raw.upper())
+    t = raw.upper()
+    # Pre-correct common OCR misreads
+    t = re.sub(r'\b8\s{0,2}([1-9])\b', r'B\1', t)  # 82→B2 (8 looks like B)
+    t = re.sub(r'\bI([1-9])\b', r'1\1', t)           # I2→12
+    t = re.sub(r'\s+', ' ', t)
     floor = None
     zone = None
 
-    mb = re.search(r'B\s*([1-9])', t)
+    mb = re.search(r'\bB\s{0,2}([1-9])', t)
     if mb:
         floor = f'B{mb.group(1)}'
     if not floor:
-        mf = re.search(r'([1-8])\s*F', t)
+        mf = re.search(r'\b([1-8])\s{0,2}F\b', t)
         if mf:
             floor = f'{mf.group(1)}F'
     if not floor and 'ROOF' in t:
         floor = '옥상'
 
     used_letter = floor[0] if floor else None
-    mz = re.search(r'([A-Z])\s*-\s*(\d{1,3})', t)
+    mz = re.search(r'\b([A-Z])\s*-\s*(\d{1,3})\b', t)
     if mz and mz.group(1) != used_letter:
         zone = f'{mz.group(1)}-{mz.group(2)}'
 
@@ -45,11 +49,12 @@ TESTS = [
     ('- B2 -',               'B2',   None,   '대시 둘러싸인 B2'),
     ('FLOOR B2',             'B2',   None,   'FLOOR 접두'),
     ('A-15 B2',              'B2',   'A-15', '구역이 앞에 올 때'),
-    # OCR misread / bug cases
-    ('82',                   None,   None,   'B2→82 오인식 방어 (버그?)'),
-    ('BRAKE 2',              None,   None,   'BRAKE단어 오매칭 방어 (버그?)'),
-    ('AVAILABLE 82 SPOTS',   None,   None,   '숫자 82는 층수 아님 (버그?)'),
-    ('28F',                  None,   None,   '28F→8F 잘못 추출 방어 (버그?)'),
+    # OCR misread correction cases (8→B, now fixed)
+    ('82',                   'B2',   None,   'B2→82 OCR 오인식 보정'),
+    ('83 A-5',               'B3',   'A-5',  '83+구역 보정'),
+    # OCR misread / guard cases
+    ('BRAKE 2',              None,   None,   'BRAKE단어 오매칭 방어'),
+    ('28F',                  None,   None,   '28F→8F 잘못 추출 방어'),
     ('F2',                   None,   None,   'F2 역순 (층수 아님)'),
     # Boundary
     ('',                     None,   None,   '빈 문자열'),

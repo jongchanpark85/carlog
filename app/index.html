@@ -963,7 +963,12 @@ function copyText(t){
 // PARKING OCR  (Tesseract.js lazy-loaded from CDN)
 // ════════════════════════════════════════════════
 function _parseParkingText(raw){
-  const t=raw.toUpperCase().replace(/\s+/g,' ');
+  // Pre-correct common OCR misreads before pattern matching
+  const t=raw.toUpperCase()
+    .replace(/[O0]/g,c=>c==='O'?'O':'0')  // keep as-is, handled per-pattern
+    .replace(/\b8\s{0,2}([1-9])\b/g,'B$1') // 82→B2, 83→B3 (8 looks like B)
+    .replace(/\bI([1-9])\b/g,'1$1')         // I2→12 (I looks like 1 in some fonts)
+    .replace(/\s+/g,' ');
   let floor=null,zone=null;
   const mb=/\bB\s{0,2}([1-9])/.exec(t);if(mb)floor=`B${mb[1]}`;
   if(!floor){const mf=/\b([1-8])\s{0,2}F\b/.exec(t);if(mf)floor=`${mf[1]}F`;}
@@ -979,11 +984,11 @@ function _preprocessForOCR(imgData){
     const img=new Image();
     img.onload=()=>{
       const c=document.createElement('canvas');
-      c.width=img.width;c.height=img.height;
+      // 2× upscale — OCR accuracy degrades sharply below ~150px char height
+      c.width=img.width*2; c.height=img.height*2;
       const ctx=c.getContext('2d');
-      // Grayscale + high contrast improves OCR accuracy on parking signs
-      ctx.filter='grayscale(1) contrast(2.5)';
-      ctx.drawImage(img,0,0);
+      ctx.filter='grayscale(1) contrast(3) brightness(1.15)';
+      ctx.drawImage(img,0,0,c.width,c.height);
       res(c.toDataURL('image/png'));
     };
     img.src=imgData;
