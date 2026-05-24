@@ -987,20 +987,48 @@ function _parseParkingText(raw){
   return{floor,zone};
 }
 
-function _preprocessForOCR(imgData){
+function _preprocessForOCR(imgData,invert){
   return new Promise(res=>{
     const img=new Image();
     img.onload=()=>{
       const c=document.createElement('canvas');
-      // 2× upscale — OCR accuracy degrades sharply below ~150px char height
       c.width=img.width*2; c.height=img.height*2;
       const ctx=c.getContext('2d');
-      ctx.filter='grayscale(1) contrast(3) brightness(1.15)';
+      ctx.filter=`grayscale(1) contrast(3) brightness(1.15)${invert?' invert(1)':''}`;
       ctx.drawImage(img,0,0,c.width,c.height);
       res(c.toDataURL('image/png'));
     };
     img.src=imgData;
   });
+}
+
+async function _runTesseract(imgData){
+  const opts={
+    workerPath:'https://unpkg.com/tesseract.js@2.1.1/dist/worker.min.js',
+    langPath:'https://tessdata.projectnaptha.com/4.0.0_fast',
+    corePath:'https://unpkg.com/tesseract.js-core@2.2.0/tesseract-core.wasm.js',
+    logger:()=>{}
+  };
+  try{
+    const worker=Tesseract.createWorker(opts);
+    await worker.load();
+    await worker.loadLanguage('eng');
+    await worker.initialize('eng');
+    await worker.setParameters({
+      tessedit_char_whitelist:'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 -',
+      tessedit_pageseg_mode:'11',
+    });
+    const{data}=await worker.recognize(imgData);
+    await worker.terminate();
+    // Keep short words (≤6 chars) with confidence ≥ 25 — parking IDs are short
+    return data.words
+      .filter(w=>w.confidence>=25&&w.text.trim().length<=6)
+      .map(w=>w.text).join(' ').trim();
+  }catch{
+    // Fallback: simple recognize without createWorker
+    const{data}=await Tesseract.recognize(imgData,'eng',{...opts});
+    return data.text;
+  }
 }
 
 async function _ocrRawText(imgData){
@@ -1015,7 +1043,7 @@ async function _ocrRawText(imgData){
       if(t.trim())return{text:t,engine:'기기 내장 OCR'};
     }catch(e){console.warn('TextDetector 실패:',e);}
   }
-  // 2. Tesseract.js v2 — PSM 11 (sparse text) + char whitelist + confidence filter
+  // 2. Tesseract.js v2 — normal pass, then inverted if floor not found
   await new Promise((res,rej)=>{
     if(typeof Tesseract!=='undefined'){res();return;}
     const s=document.createElement('script');
@@ -1023,28 +1051,16 @@ async function _ocrRawText(imgData){
     s.onload=res;s.onerror=()=>rej(new Error('Tesseract 스크립트 로드 실패 — 네트워크를 확인하세요'));
     document.head.appendChild(s);
   });
-  const processed=await _preprocessForOCR(imgData);
-  const worker=Tesseract.createWorker({
-    workerPath:'https://unpkg.com/tesseract.js@2.1.1/dist/worker.min.js',
-    langPath:'https://tessdata.projectnaptha.com/4.0.0_fast',
-    corePath:'https://unpkg.com/tesseract.js-core@2.2.0/tesseract-core.wasm.js',
-    logger:()=>{}
-  });
-  await worker.load();
-  await worker.loadLanguage('eng');
-  await worker.initialize('eng');
-  await worker.setParameters({
-    tessedit_char_whitelist:'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 -',
-    tessedit_pageseg_mode:'11',
-  });
-  const{data}=await worker.recognize(processed);
-  await worker.terminate();
-  // Only keep words with confidence ≥ 50 to filter background noise
-  const filtered=data.words
-    .filter(w=>w.confidence>=50)
-    .map(w=>w.text)
-    .join(' ');
-  return{text:filtered||data.text,engine:'Tesseract.js'};
+  const norm=await _preprocessForOCR(imgData,false);
+  let text=await _runTesseract(norm);
+  // Inverted pass: helps when sign has white text on dark background
+  if(!_parseParkingText(text).floor){
+    const inv=await _preprocessForOCR(imgData,true);
+    const t2=await _runTesseract(inv);
+    if(_parseParkingText(t2).floor)text=t2;
+    else if(t2&&!text)text=t2;
+  }
+  return{text,engine:'Tesseract.js'};
 }
 
 async function runParkingOCR(imgData){
