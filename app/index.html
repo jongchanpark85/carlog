@@ -387,6 +387,7 @@ select.fi{-webkit-appearance:none;appearance:none;background-image:url("data:ima
     <div id="parking-vehicle-info"></div>
     <p class="sec">주차 사진</p>
     <div id="parking-photos" class="pgrid"></div>
+    <div id="parking-ocr-result" style="display:none;background:var(--bg2);border:1px solid var(--bd);border-radius:10px;padding:10px 12px;margin-top:8px;margin-bottom:4px"></div>
     <p class="sec">위치</p>
     <div id="parking-loc" class="lrow"><div class="spin"></div><span class="lt">위치 확인 중...</span></div>
     <p class="sec">층수 <span style="font-weight:400;font-size:13px;color:var(--txm)">(선택)</span></p>
@@ -911,7 +912,7 @@ let selVehicleId=null;
 let curView='home';
 
 // Temporary state for forms
-let parkingPhotos=[],parkingLat=null,parkingLng=null,parkingAddr=null,selFloor=null,selPurpose='work';
+let parkingPhotos=[],parkingLat=null,parkingLng=null,parkingAddr=null,selFloor=null,selPurpose='work',parkingOcrText=null;
 let accPhotos=[],accLat=null,accLng=null,accAddr=null;
 let maintPhotos=[],statusPhotos=[],selStatusCat=STATUS_CATS[0];
 let handoverPhotos=[],selHandoverType=HANDOVER_TYPES[0],selFuel=FUEL_LEVELS[0];
@@ -956,6 +957,65 @@ function _startParkTimer(ts){
 
 function copyText(t){
   navigator.clipboard?.writeText(t).then(()=>toast(`${t} 복사됨`)).catch(()=>toast(t));
+}
+
+// ════════════════════════════════════════════════
+// PARKING OCR  (Tesseract.js lazy-loaded from CDN)
+// ════════════════════════════════════════════════
+function _loadTesseract(){
+  if(typeof Tesseract!=='undefined')return Promise.resolve();
+  return new Promise((res,rej)=>{
+    const s=document.createElement('script');
+    s.src='https://unpkg.com/tesseract.js@4/dist/tesseract.min.js';
+    s.onload=res;s.onerror=rej;
+    document.head.appendChild(s);
+  });
+}
+
+function _parseParkingText(raw){
+  const t=raw.toUpperCase().replace(/\s+/g,' ');
+  let floor=null,zone=null;
+  const mb=/B\s*([1-9])/.exec(t);if(mb)floor=`B${mb[1]}`;
+  if(!floor){const mf=/([1-8])\s*F/.exec(t);if(mf)floor=`${mf[1]}F`;}
+  if(!floor&&t.includes('ROOF'))floor='옥상';
+  const usedLetter=floor?floor[0]:null;
+  const mz=/([A-Z])\s*-\s*(\d{1,3})/.exec(t);
+  if(mz&&mz[1]!==usedLetter)zone=`${mz[1]}-${mz[2]}`;
+  return{floor,zone};
+}
+
+async function runParkingOCR(imgData){
+  const resultEl=document.getElementById('parking-ocr-result');
+  if(!resultEl)return;
+  resultEl.innerHTML=`<div style="display:flex;align-items:center;gap:8px;color:var(--txm);font-size:12px"><div class="spin" style="width:14px;height:14px;flex-shrink:0"></div>사진에서 텍스트 인식 중...</div>`;
+  resultEl.style.display='';
+  try{
+    await _loadTesseract();
+    const w=await Tesseract.createWorker('eng',1,{logger:()=>{}});
+    const{data:{text,words}}=await w.recognize(imgData);
+    await w.terminate();
+    const clean=text.replace(/[^A-Z0-9\-\s]/gi,' ').replace(/\s+/g,' ').trim();
+    parkingOcrText=clean||null;
+    const{floor,zone}=_parseParkingText(text);
+    // Auto-apply
+    if(floor)selectFloor(floor);
+    if(zone&&!document.getElementById('zone-input').value)
+      document.getElementById('zone-input').value=zone;
+    // Show result card
+    const detected=[];
+    if(floor)detected.push(`<span style="background:var(--ok-s);color:var(--ok);border-radius:6px;padding:2px 8px;font-weight:700">${floor}</span>`);
+    if(zone)detected.push(`<span style="background:var(--pr-s);color:var(--pr);border-radius:6px;padding:2px 8px;font-weight:700">${zone}</span>`);
+    const detectedHtml=detected.length?`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px">${detected.join('')}</div>`:'';
+    const rawHtml=clean?`<div style="font-size:11px;color:var(--txm);word-break:break-all;line-height:1.5">${clean}</div>`:'';
+    if(!clean){
+      resultEl.innerHTML=`<div style="font-size:12px;color:var(--txm)">텍스트를 인식하지 못했어요</div>`;
+    } else {
+      resultEl.innerHTML=`<div style="font-size:11px;font-weight:700;color:var(--tx2);margin-bottom:5px;letter-spacing:.04em">OCR 인식 결과</div>${detectedHtml}${rawHtml}`;
+    }
+  }catch{
+    parkingOcrText=null;
+    resultEl.innerHTML=`<div style="font-size:12px;color:var(--txm)">인식 실패 — 직접 선택해 주세요</div>`;
+  }
 }
 
 // ════════════════════════════════════════════════
@@ -1008,7 +1068,11 @@ async function handlePhotoInput(e,cb){
   catch{toast('사진 처리 실패');}
 }
 
-function addParkingPhoto(d){parkingPhotos.push(d);renderPhotoGrid('parking-photos',parkingPhotos,'addParkingPhoto','removeParkingPhoto');}
+function addParkingPhoto(d){
+  parkingPhotos.push(d);
+  renderPhotoGrid('parking-photos',parkingPhotos,'addParkingPhoto','removeParkingPhoto');
+  if(parkingPhotos.length===1)runParkingOCR(d);
+}
 function removeParkingPhoto(i){parkingPhotos.splice(i,1);renderPhotoGrid('parking-photos',parkingPhotos,'addParkingPhoto','removeParkingPhoto');}
 function addAccPhoto(d){accPhotos.push(d);renderPhotoGrid('acc-photos',accPhotos,'addAccPhoto','removeAccPhoto');}
 function removeAccPhoto(i){accPhotos.splice(i,1);renderPhotoGrid('acc-photos',accPhotos,'addAccPhoto','removeAccPhoto');}
@@ -1293,9 +1357,11 @@ function parkDuration(start,end){
 // PARKING
 // ════════════════════════════════════════════════
 function initParkingForm(){
-  parkingPhotos=[];parkingLat=null;parkingLng=null;parkingAddr=null;selFloor=null;selPurpose='work';
+  parkingPhotos=[];parkingLat=null;parkingLng=null;parkingAddr=null;selFloor=null;selPurpose='work';parkingOcrText=null;
   document.getElementById('zone-input').value='';
   document.getElementById('parking-memo').value='';
+  const ocrEl=document.getElementById('parking-ocr-result');
+  if(ocrEl){ocrEl.style.display='none';ocrEl.innerHTML='';}
   renderPhotoGrid('parking-photos',parkingPhotos,'addParkingPhoto','removeParkingPhoto');
   renderVehicleChip('parking-vehicle-info',getSelectedVehicle());
 
@@ -1370,6 +1436,7 @@ function saveParking(){
     floor:selFloor,zone:document.getElementById('zone-input').value.trim()||null,
     memo:document.getElementById('parking-memo').value.trim()||null,
     purpose:LS.mode()==='business'?selPurpose:null,
+    ocrText:parkingOcrText||null,
     photos:parkingPhotos,isActive:true,exitTime:null
   };
   ps.unshift(rec);
@@ -1412,6 +1479,7 @@ function renderParkingHistory(){
             ${r.purpose?`<span class="lc-badge ${r.purpose==='work'?'pur-w':'pur-p'}">${r.purpose==='work'?'업무':'개인'}</span>`:''}
           </div>
           ${r.memo?`<div style="font-size:12px;color:var(--tx2);margin-top:6px;padding:8px 10px;background:var(--bg2);border-radius:8px">${r.memo}</div>`:''}
+          ${r.ocrText?`<div style="font-size:11px;color:var(--txm);margin-top:5px;padding:6px 10px;background:var(--bg2);border-radius:8px;word-break:break-all;line-height:1.5"><span style="font-weight:700;color:var(--tx2)">OCR&ensp;</span>${r.ocrText}</div>`:''}
         </div>
       </div>
       ${photos.length?`<div class="lc-photos" style="margin-top:10px">${photos.map(p=>`<img src="${p}" onclick="openLightbox('${p}')">`).join('')}</div>`:''}
