@@ -969,7 +969,7 @@ function _parseParkingText(raw){
     .replace(/\b8\s{0,2}([1-9])\b/g,'B$1') // 82→B2, 83→B3 (8 looks like B)
     .replace(/\bI([1-9])\b/g,'1$1')         // I2→12 (I looks like 1 in some fonts)
     .replace(/\s+/g,' ');
-  let floor=null,zone=null;
+  let floor=null;
   const mb=/\bB\s{0,2}([1-9])/.exec(t);if(mb)floor=`B${mb[1]}`;
   if(!floor){const mf=/\b([1-8])\s{0,2}F\b/.exec(t);if(mf)floor=`${mf[1]}F`;}
   if(!floor&&t.includes('ROOF'))floor='옥상';
