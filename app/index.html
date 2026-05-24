@@ -1000,24 +1000,24 @@ async function _ocrRawText(imgData){
       const rs=await det.detect(img);
       const t=rs.map(r=>r.rawValue).join(' ');
       if(t.trim())return{text:t,engine:'기기 내장 OCR'};
-    }catch{}
+    }catch(e){console.warn('TextDetector 실패:',e);}
   }
-  // 2. Tesseract.js — explicit CDN paths prevent 404 on app server
+  // 2. Tesseract.js v2 — uses asm.js fallback, no SharedArrayBuffer required
   await new Promise((res,rej)=>{
     if(typeof Tesseract!=='undefined'){res();return;}
     const s=document.createElement('script');
-    s.src='https://unpkg.com/tesseract.js@4.1.1/dist/tesseract.min.js';
-    s.onload=res;s.onerror=()=>rej(new Error('Tesseract 로드 실패 (네트워크 확인)'));
+    s.src='https://unpkg.com/tesseract.js@2.1.1/dist/tesseract.min.js';
+    s.onload=res;s.onerror=()=>rej(new Error('Tesseract 스크립트 로드 실패 — 네트워크를 확인하세요'));
     document.head.appendChild(s);
   });
   const processed=await _preprocessForOCR(imgData);
-  const{data:{text}}=await Tesseract.recognize(processed,'eng',{
-    workerPath:'https://unpkg.com/tesseract.js@4.1.1/dist/worker.min.js',
-    langPath:'https://tessdata.projectnaptha.com/4.0.0',
-    corePath:'https://unpkg.com/tesseract.js-core@4.0.4/tesseract-core-lstm.wasm.js',
+  const result=await Tesseract.recognize(processed,'eng',{
+    workerPath:'https://unpkg.com/tesseract.js@2.1.1/dist/worker.min.js',
+    langPath:'https://tessdata.projectnaptha.com/4.0.0_fast',
+    corePath:'https://unpkg.com/tesseract.js-core@2.2.0/tesseract-core.wasm.js',
     logger:()=>{}
   });
-  return{text,engine:'Tesseract.js'};
+  return{text:result.data.text,engine:'Tesseract.js'};
 }
 
 async function runParkingOCR(imgData){
@@ -1045,7 +1045,9 @@ async function runParkingOCR(imgData){
       :`<div style="font-size:12px;color:var(--txm)">텍스트를 인식하지 못했어요</div><button onclick="runParkingOCR(parkingPhotos[0])" style="margin-top:6px;font-size:12px;color:var(--pr);background:none;padding:0;text-decoration:underline">다시 인식</button>`;
   }catch(e){
     parkingOcrText=null;
-    resultEl.innerHTML=`<div style="font-size:12px;color:var(--dng)">OCR 실패: ${e.message||'알 수 없는 오류'}</div><button onclick="runParkingOCR(parkingPhotos[0])" style="margin-top:6px;font-size:12px;color:var(--pr);background:none;padding:0;text-decoration:underline">다시 시도</button>`;
+    const errMsg=e?.message||String(e)||'알 수 없는 오류';
+    console.error('OCR 실패:',e);
+    resultEl.innerHTML=`<div style="font-size:12px;color:var(--dng)">OCR 실패: ${errMsg}</div><button onclick="runParkingOCR(parkingPhotos[0])" style="margin-top:6px;font-size:12px;color:var(--pr);background:none;padding:0;text-decoration:underline">다시 시도</button>`;
   }
 }
 
