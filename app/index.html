@@ -296,14 +296,14 @@ select.fi{-webkit-appearance:none;appearance:none;background-image:url("data:ima
       <button class="sbtn" onclick="toggleTheme()">테마 변경</button>
     </div>
     <div class="srow" style="flex-direction:column;align-items:flex-start;gap:6px">
-      <span class="sl">Gemini API 키 <span style="font-size:11px;color:var(--txm)">(사진 OCR 정확도 향상)</span></span>
+      <span class="sl">OCR API 키 <span style="font-size:11px;color:var(--txm)">(주차 사진 인식 정확도 향상)</span></span>
       <div style="display:flex;gap:6px;width:100%">
-        <input id="gemini-key-input" type="password" placeholder="AIza..." autocomplete="off"
+        <input id="ocr-key-input" type="password" placeholder="OCR.space 또는 Gemini 키" autocomplete="off"
           style="flex:1;padding:8px 10px;border:1.5px solid var(--bd);border-radius:8px;background:var(--bg2);color:var(--tx);font-size:13px"
-          oninput="saveGeminiKey(this.value)">
-        <button class="sbtn" onclick="document.getElementById('gemini-key-input').type=document.getElementById('gemini-key-input').type==='password'?'text':'password'">표시</button>
+          oninput="saveOcrKey(this.value)">
+        <button class="sbtn" onclick="document.getElementById('ocr-key-input').type=document.getElementById('ocr-key-input').type==='password'?'text':'password'">표시</button>
       </div>
-      <span style="font-size:11px;color:var(--txm)">키 없으면 Tesseract.js 사용 · <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:var(--pr)">무료 발급</a></span>
+      <span style="font-size:11px;color:var(--txm)">키 없으면 Tesseract.js 사용 · <a href="https://ocr.space/ocrapi/freekey" target="_blank" style="color:var(--pr)">OCR.space 무료 발급 (카드 불필요)</a> · AIza... 입력 시 Gemini 사용</span>
     </div>
     <div class="srow">
       <span class="sl">데이터 백업</span>
@@ -1084,12 +1084,34 @@ async function _ocrWithGemini(imgData,apiKey){
   return json.candidates?.[0]?.content?.parts?.[0]?.text?.trim()||'';
 }
 
+async function _ocrWithOCRSpace(imgData,apiKey){
+  const small=await _shrinkForGemini(imgData);
+  const base64=small.split(',')[1];
+  const fd=new FormData();
+  fd.append('base64Image',`data:image/jpeg;base64,${base64}`);
+  fd.append('language','eng');
+  fd.append('isOverlayRequired','false');
+  fd.append('OCREngine','2');
+  fd.append('scale','true');
+  fd.append('detectOrientation','true');
+  const res=await fetch('https://api.ocr.space/parse/image',{method:'POST',headers:{apikey:apiKey},body:fd});
+  if(!res.ok)throw new Error(`OCR.space ${res.status}`);
+  const json=await res.json();
+  if(json.IsErroredOnProcessing)throw new Error(json.ErrorMessage?.[0]||'OCR.space 오류');
+  return json.ParsedResults?.[0]?.ParsedText||'';
+}
+
 async function _ocrRawText(imgData){
-  // 0. Gemini Vision — if API key set, use ONLY Gemini (fast + accurate)
-  const geminiKey=LS.cfg().geminiKey;
-  if(geminiKey){
-    const text=await _ocrWithGemini(imgData,geminiKey);
+  const ocrKey=LS.cfg().ocrKey||'';
+  // 0a. Gemini — key starts with AIza
+  if(ocrKey.startsWith('AIza')){
+    const text=await _ocrWithGemini(imgData,ocrKey);
     return{text:text||'',engine:'Gemini AI'};
+  }
+  // 0b. OCR.space — any other key
+  if(ocrKey){
+    const text=await _ocrWithOCRSpace(imgData,ocrKey);
+    return{text:text||'',engine:'OCR.space'};
   }
   // 1. Native TextDetector
   if('TextDetector' in window){
@@ -1125,8 +1147,8 @@ async function runParkingOCR(imgData){
   const resultEl=document.getElementById('parking-ocr-result');
   if(!resultEl)return;
   resultEl.style.display='';
-  const hasGemini=!!LS.cfg().geminiKey;
-  const loadMsg=hasGemini?'Gemini AI 인식 중...':('TextDetector' in window)?'텍스트 인식 중...':'텍스트 인식 중... (최초 실행 시 10~20초 소요)';
+  const ocrKey=LS.cfg().ocrKey||'';
+  const loadMsg=ocrKey.startsWith('AIza')?'Gemini AI 인식 중...':ocrKey?'OCR.space 인식 중...':('TextDetector' in window)?'텍스트 인식 중...':'텍스트 인식 중... (최초 실행 시 10~20초 소요)';
   resultEl.innerHTML=`<div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--txm)"><div class="spin" style="width:14px;height:14px;flex-shrink:0"></div>${loadMsg}</div>`;
   try{
     const{text,engine}=await _ocrRawText(imgData);
@@ -2351,9 +2373,9 @@ function updateModeBadge(){
   if(badge)badge.style.display=LS.mode()==='business'?'':'none';
 }
 
-function saveGeminiKey(val){
+function saveOcrKey(val){
   const cfg=LS.cfg();
-  cfg.geminiKey=val.trim();
+  cfg.ocrKey=val.trim();
   LS.saveCfg(cfg);
 }
 
@@ -2361,8 +2383,8 @@ function openSettings(){
   const mode=LS.mode();
   document.getElementById('mode-toggle-btn').textContent=
     mode==='business'?'개인용으로 변경':'법인/업무용으로 변경';
-  const keyEl=document.getElementById('gemini-key-input');
-  if(keyEl)keyEl.value=LS.cfg().geminiKey||'';
+  const keyEl=document.getElementById('ocr-key-input');
+  if(keyEl)keyEl.value=LS.cfg().ocrKey||'';
   document.getElementById('settings-modal').style.display='flex';
 }
 function closeSettings(){document.getElementById('settings-modal').style.display='none';}
