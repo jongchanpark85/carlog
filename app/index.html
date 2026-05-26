@@ -84,6 +84,7 @@ button{cursor:pointer;border:none;background:none}
 .pw-noimg{width:52px;height:52px;border-radius:12px;background:rgba(22,163,74,.15);display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .pw-info{flex:1;min-width:0}
 .pw-floor{font-size:26px;font-weight:900;color:var(--ok);line-height:1.15;letter-spacing:-.02em}
+.pw-zone{font-size:17px;font-weight:800;color:var(--ok);opacity:.75;margin-left:7px;letter-spacing:-.01em}
 .pw-nofloor{font-size:15px;font-weight:700;color:var(--ok)}
 .pw-addr{font-size:13px;color:var(--tx1);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pw-sub{font-size:11px;color:var(--txm);margin-top:2px}
@@ -1366,7 +1367,7 @@ function renderHome(){
 
   // Active parking widget
   if(active){
-    const addr=[active.addr,active.zone].filter(Boolean).join(' ');
+    const addr=active.addr||null;
     const photo=active.photos?.[0];
     html+=`<div class="pw" onclick="navTo('parking')">
       <div class="pw-hd">
@@ -1379,7 +1380,9 @@ function renderHome(){
           :`<div class="pw-noimg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="22" height="22" style="color:var(--ok)"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 17V7h4a3 3 0 0 1 0 6H9"/></svg></div>`
         }
         <div class="pw-info">
-          ${active.floor?`<div class="pw-floor">${active.floor}</div>`:`<div class="pw-nofloor">주차 중</div>`}
+          ${active.floor
+            ?`<div class="pw-floor">${active.floor}${active.zone?`<span class="pw-zone">${active.zone}</span>`:''}</div>`
+            :`<div class="pw-nofloor">주차 중${active.zone?` · ${active.zone}`:''}</div>`}
           ${addr?`<div class="pw-addr">${addr}</div>`:''}
           <div class="pw-sub">${fmtDate(active.ts)} ${fmtTime(active.ts)} 주차 시작</div>
           <div class="pw-elapsed">
