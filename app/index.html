@@ -299,6 +299,44 @@ select.fi{-webkit-appearance:none;appearance:none;background-image:url("data:ima
   border-radius:10px;font-size:13px;color:var(--tx);font-family:inherit;outline:none;
   -webkit-appearance:none;text-align:center;
 }
+/* ── Accident view ───────────────────────────────── */
+.acc-banner{background:#FFF4E6;border:1px solid rgba(255,149,0,.2);border-radius:14px;padding:14px 16px;margin-bottom:18px}
+.acc-banner-hd{font-size:13px;font-weight:700;color:#E65100;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.acc-banner-hd::before{content:'⚠';font-size:14px}
+.acc-banner-ol{font-size:12.5px;color:#7A3E00;padding-left:18px;line-height:1.7;margin:0}
+.acc-banner-ol li{margin-bottom:2px}
+.acc-sec-lbl{font-size:11px;font-weight:700;color:#9aa;letter-spacing:.06em;text-transform:uppercase;margin:18px 0 8px}
+.acc-card{background:#fff;border:1px solid #ececf0;border-radius:14px;padding:14px;overflow:hidden}
+.acc-field{margin-bottom:14px}
+.acc-field-lbl{display:block;font-size:12px;font-weight:600;color:#666;margin-bottom:6px}
+.acc-phone-row{display:flex;gap:8px;align-items:stretch}
+.acc-phone-row .fi{flex:1;min-width:0}
+.acc-call-btn{height:46px;padding:0 18px;background:#16a34a;color:#fff;border-radius:10px;font-weight:700;font-size:13px;font-family:inherit;border:none;white-space:nowrap;cursor:pointer;flex-shrink:0;-webkit-tap-highlight-color:transparent}
+.acc-call-btn:active{background:#138e3f}
+/* Insurance card */
+.acc-ins-row{display:flex;align-items:center;gap:10px;padding:13px 14px;border-bottom:0.5px solid #f1f1f4;text-decoration:none;color:inherit;-webkit-tap-highlight-color:transparent}
+.acc-ins-row:last-child{border-bottom:none}
+.acc-ins-row:active{background:#f8f8fa}
+.acc-ins-name{flex:1;font-size:14px;font-weight:600;color:#111;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.acc-ins-phone{font-size:13px;font-weight:700;color:#007AFF;display:inline-flex;align-items:center;gap:5px;flex-shrink:0}
+.acc-ins-phone svg{width:14px;height:14px}
+/* Emergency contact */
+.acc-emg-row{display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:0.5px solid #f1f1f4}
+.acc-emg-row:last-child{border-bottom:none}
+.acc-emg-info{flex:1;min-width:0}
+.acc-emg-name{font-size:14px;font-weight:600;color:#111;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.acc-emg-phone{font-size:12px;color:#888;margin-top:1px}
+.acc-emg-btn{flex-shrink:0;height:32px;padding:0 12px;border-radius:8px;font-size:12px;font-weight:700;border:none;text-decoration:none;display:inline-flex;align-items:center;-webkit-tap-highlight-color:transparent}
+.acc-emg-btn.sms{background:#f0f0f3;color:#333}
+.acc-emg-btn.tel{background:#007AFF;color:#fff}
+/* Empty / placeholder */
+.acc-empty{background:#f8f8fa;border-radius:12px;padding:14px 16px;font-size:13px;color:#999;text-align:center}
+.acc-my-ins{padding:14px}
+.acc-my-ins-co{font-size:16px;font-weight:700;color:#111}
+.acc-my-ins-exp{font-size:12px;color:#888;margin-top:3px}
+.acc-my-ins-exp.expired{color:#FF3B30;font-weight:600}
+.acc-my-ins-call{margin-top:10px;display:inline-flex;align-items:center;gap:6px;background:#007AFF;color:#fff;border-radius:22px;padding:8px 18px;font-size:13px;font-weight:700;text-decoration:none}
+.acc-my-ins-call svg{width:14px;height:14px}
 /* ── SOS strip ───────────────────────────────────── */
 .sos-strip{
   position:fixed;bottom:calc(68px + env(safe-area-inset-bottom));
@@ -701,45 +739,64 @@ select.fi{-webkit-appearance:none;appearance:none;background-image:url("data:ima
 
   <!-- ACCIDENT -->
   <div id="v-accident" class="view">
-    <button class="back" onclick="go('home')">← 뒤로</button>
-    <h1 style="font-size:20px;font-weight:700;color:#111;margin-bottom:16px">사고 대응</h1>
+    <button class="back" onclick="go('home')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><path d="M15 18l-6-6 6-6"/></svg>
+      뒤로
+    </button>
+    <div class="ab"><h1>사고 대응</h1></div>
 
-    <!-- 등록 차량 보험 정보 -->
-    <div id="acc-insurance-card"></div>
-
-    <!-- 비상 연락처 (미리 등록된 번호) -->
-    <div id="acc-emergency-contacts"></div>
-
-    <!-- 긴급 안내 배너 -->
-    <div style="background:#FFF3E0;border:1px solid rgba(255,149,0,.25);border-radius:14px;padding:14px 16px;margin-bottom:16px">
-      <div style="font-size:13px;font-weight:700;color:#E65100;margin-bottom:6px">사고 발생 시 순서</div>
-      <ol style="font-size:12px;color:#E65100;padding-left:16px;line-height:1.8;opacity:.9">
-        <li>현장 사진을 찍어두세요</li>
+    <!-- 1) 긴급 안내 배너 -->
+    <div class="acc-banner">
+      <div class="acc-banner-hd">사고 발생 시 행동 요령</div>
+      <ol class="acc-banner-ol">
+        <li>현장 사진을 먼저 찍어두세요</li>
         <li>상대방 정보를 기록하세요</li>
         <li>보험사에 즉시 연락하세요</li>
       </ol>
     </div>
 
-    <!-- 현장 기록 -->
-    <div id="acc-vehicle-info"></div>
-    <p class="sec">현장 사진</p>
-    <div id="acc-photos" class="pgrid"></div>
-    <p class="sec">사고 위치</p>
-    <div id="acc-loc" class="lrow"><div class="spin"></div><span class="lt">위치 확인 중...</span></div>
-    <p class="sec">상대방 정보</p>
-    <div class="fg"><label>상대방 번호판</label><input id="acc-plate" class="fi" placeholder="12가3456" style="text-transform:uppercase"></div>
-    <div class="fg"><label>상대방 연락처</label>
-      <div style="display:flex;gap:8px">
-        <input id="acc-contact" class="fi" placeholder="010-0000-0000" type="tel" style="flex:1">
-        <button onclick="callAccContact()" style="height:48px;padding:0 14px;background:var(--ok);color:#fff;border-radius:10px;font-weight:700;font-size:13px;font-family:inherit;border:none;white-space:nowrap">전화</button>
+    <!-- 2) 등록 보험사 -->
+    <div class="acc-sec-lbl">내 보험사</div>
+    <div id="acc-insurance-card" class="acc-card"></div>
+
+    <!-- 3) 비상 연락처 -->
+    <div id="acc-emergency-wrap"></div>
+
+    <!-- 4) 현장 기록 -->
+    <div class="acc-sec-lbl">현장 기록</div>
+    <div class="acc-card">
+      <div class="acc-field">
+        <label class="acc-field-lbl">사진</label>
+        <div id="acc-photos" class="pgrid"></div>
+      </div>
+      <div class="acc-field">
+        <label class="acc-field-lbl">사고 위치</label>
+        <div id="acc-loc" class="lrow" style="margin-bottom:0"><div class="spin"></div><span class="lt">위치 확인 중...</span></div>
+      </div>
+      <div class="acc-field">
+        <label class="acc-field-lbl">상대방 번호판</label>
+        <input id="acc-plate" class="fi" placeholder="12가 3456" style="text-transform:uppercase">
+      </div>
+      <div class="acc-field">
+        <label class="acc-field-lbl">상대방 연락처</label>
+        <div class="acc-phone-row">
+          <input id="acc-contact" class="fi" placeholder="010-0000-0000" type="tel">
+          <button class="acc-call-btn" onclick="callAccContact()">전화</button>
+        </div>
+      </div>
+      <div class="acc-field" style="margin-bottom:0">
+        <label class="acc-field-lbl">메모</label>
+        <textarea id="acc-memo" class="fi" rows="3" placeholder="사고 경위를 간략히 기록하세요"></textarea>
       </div>
     </div>
-    <div class="fg"><label>사고 메모</label><textarea id="acc-memo" class="fi" rows="3" placeholder="사고 경위를 간략히 기록하세요"></textarea></div>
-    <button class="btn btn-dng" onclick="saveAccident()">저장</button>
 
-    <!-- 보험사 목록 (전화 연결) -->
-    <p class="sec" style="margin-top:24px">보험사 긴급출동</p>
-    <div id="acc-ins-list" style="background:#fff;border:0.5px solid #efefef;border-radius:16px;overflow:hidden"></div>
+    <button class="btn btn-dng" onclick="saveAccident()" style="margin-top:14px">저장</button>
+
+    <!-- 5) 보험사 긴급출동 -->
+    <div class="acc-sec-lbl" style="margin-top:24px">보험사 긴급출동</div>
+    <div id="acc-ins-list" class="acc-card" style="padding:0"></div>
+
+    <div style="height:24px"></div>
   </div>
 
   <!-- DRIVE LOG (business) -->
@@ -2146,64 +2203,58 @@ const INS_CONTACTS=[
 
 function renderAccidentView(){
   const sel=getSelectedVehicle();
-  // 등록 보험 정보
+  const phoneSvg=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.41 2 2 0 0 1 3.6 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.6a16 16 0 0 0 5.55 5.55l.96-.96a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21 16.92z"/></svg>`;
+
+  // ── 내 보험사 ──
   const insCard=document.getElementById('acc-insurance-card');
   if(insCard){
-    if(sel?.insCo||sel?.insExp){
+    if(sel?.insCo){
+      const matched=INS_CONTACTS.find(i=>i.n.includes(sel.insCo.slice(0,2)));
       const expired=sel.insExp&&new Date(sel.insExp)<new Date();
       insCard.innerHTML=`
-        <div style="background:#EAF4FF;border:1px solid rgba(0,122,255,.2);border-radius:14px;padding:14px 16px;margin-bottom:12px">
-          <div style="font-size:11px;font-weight:700;color:#007AFF;letter-spacing:.05em;text-transform:uppercase;margin-bottom:8px">등록 보험 정보</div>
-          ${sel.insCo?`<div style="display:flex;justify-content:space-between;align-items:center">
-            <span style="font-size:15px;font-weight:700;color:#111">${sel.insCo}</span>
-            ${INS_CONTACTS.find(i=>i.n.includes(sel.insCo.slice(0,2)))?`
-              <a href="tel:${INS_CONTACTS.find(i=>i.n.includes(sel.insCo.slice(0,2))).p.replace(/-/g,'')}"
-                style="background:#007AFF;color:#fff;border-radius:20px;padding:6px 16px;font-size:13px;font-weight:700;text-decoration:none">전화</a>
-            `:''}
-          </div>`:''}
-          ${sel.insExp?`<div style="font-size:12px;color:${expired?'#FF3B30':'#666'};margin-top:4px">만료: ${sel.insExp}${expired?' ⚠ 만료됨':''}</div>`:''}
+        <div class="acc-my-ins">
+          <div class="acc-my-ins-co">${sel.insCo}</div>
+          ${sel.insExp?`<div class="acc-my-ins-exp${expired?' expired':''}">보험 만료일 ${sel.insExp}${expired?' · 만료됨':''}</div>`:''}
+          ${matched?`<a class="acc-my-ins-call" href="tel:${matched.p.replace(/-/g,'')}">${phoneSvg}${matched.p}</a>`:''}
         </div>`;
     } else {
-      insCard.innerHTML=`<div style="background:#f8f8f8;border-radius:14px;padding:12px 16px;margin-bottom:12px;font-size:13px;color:#999">차량 설정에서 보험사를 등록하면 여기에 표시됩니다.</div>`;
+      insCard.innerHTML=`<div class="acc-empty">차량 설정에서 보험사를 등록하면 여기에 표시됩니다.</div>`;
     }
   }
-  // 비상 연락처
-  const emgEl=document.getElementById('acc-emergency-contacts');
-  const cfg=LS.cfg();
-  const emgContacts=cfg.emergencyContacts||[];
-  if(emgEl){
+
+  // ── 비상 연락처 ──
+  const emgWrap=document.getElementById('acc-emergency-wrap');
+  const emgContacts=(LS.cfg().emergencyContacts||[]);
+  if(emgWrap){
     if(emgContacts.length){
-      emgEl.innerHTML=`
-        <div style="margin-bottom:12px">
-          <div style="font-size:11px;font-weight:700;color:#aaa;letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px">비상 연락처</div>
-          <div style="background:#fff;border:0.5px solid #efefef;border-radius:14px;overflow:hidden">
-            ${emgContacts.map(ec=>`
-              <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:0.5px solid #f5f5f5">
-                <div style="flex:1">
-                  <div style="font-size:14px;font-weight:600;color:#111">${ec.name}</div>
-                  <div style="font-size:12px;color:#888">${ec.phone}</div>
-                </div>
-                <a href="sms:${ec.phone.replace(/-/g,'')}" style="background:#f0f0f0;color:#333;border-radius:8px;padding:5px 12px;font-size:12px;font-weight:600;text-decoration:none;margin-right:6px">문자</a>
-                <a href="tel:${ec.phone.replace(/-/g,'')}" style="background:#007AFF;color:#fff;border-radius:8px;padding:5px 12px;font-size:12px;font-weight:700;text-decoration:none">전화</a>
+      emgWrap.innerHTML=`
+        <div class="acc-sec-lbl">비상 연락처</div>
+        <div class="acc-card" style="padding:0">
+          ${emgContacts.map(ec=>{
+            const tel=ec.phone.replace(/-/g,'');
+            return `<div class="acc-emg-row">
+              <div class="acc-emg-info">
+                <div class="acc-emg-name">${ec.name}</div>
+                <div class="acc-emg-phone">${ec.phone}</div>
               </div>
-            `).join('')}
-          </div>
+              <a class="acc-emg-btn sms" href="sms:${tel}">문자</a>
+              <a class="acc-emg-btn tel" href="tel:${tel}">전화</a>
+            </div>`;
+          }).join('')}
         </div>`;
     } else {
-      emgEl.innerHTML='';
+      emgWrap.innerHTML='';
     }
   }
-  // 보험사 목록
+
+  // ── 보험사 긴급출동 목록 ──
   const insList=document.getElementById('acc-ins-list');
   if(insList){
     insList.innerHTML=INS_CONTACTS.map(ins=>`
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:13px 16px;border-bottom:0.5px solid #f8f8f8">
-        <span style="font-size:14px;font-weight:600;color:#111">${ins.n}</span>
-        <a href="tel:${ins.p.replace(/-/g,'')}" style="display:flex;align-items:center;gap:6px;color:#007AFF;font-size:13px;font-weight:700;text-decoration:none">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="15" height="15"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.41 2 2 0 0 1 3.6 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.6a16 16 0 0 0 5.55 5.55l.96-.96a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21 16.92z"/></svg>
-          ${ins.p}
-        </a>
-      </div>
+      <a class="acc-ins-row" href="tel:${ins.p.replace(/-/g,'')}">
+        <span class="acc-ins-name">${ins.n}</span>
+        <span class="acc-ins-phone">${phoneSvg}${ins.p}</span>
+      </a>
     `).join('');
   }
 }
