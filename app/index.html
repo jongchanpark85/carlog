@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>차량기록</title>
+<title>Jcar</title>
 <link rel="icon" type="image/png" href="/icon-192.png">
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#1a3c6e">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="차량기록">
+<meta name="apple-mobile-web-app-title" content="Jcar">
 <link rel="apple-touch-icon" href="/icon-192.png">
 <style>
 /* ── Tokens ─────────────────────────────────────── */
@@ -299,6 +299,11 @@ select.fi{-webkit-appearance:none;appearance:none;background-image:url("data:ima
   border-radius:10px;font-size:13px;color:var(--tx);font-family:inherit;outline:none;
   -webkit-appearance:none;text-align:center;
 }
+/* ── Jcar logo ───────────────────────────────────── */
+.logo-wrap{display:flex;align-items:center;gap:9px}
+.logo-icon{width:32px;height:32px;flex-shrink:0;filter:drop-shadow(0 2px 6px rgba(26,60,110,.25))}
+.logo-text{font-size:22px;font-weight:900;letter-spacing:-.5px;background:linear-gradient(135deg,#2E5DA8 0%,#1A3C6E 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent;font-family:'SF Pro Display',-apple-system,BlinkMacSystemFont,sans-serif;line-height:1}
+[data-theme=dark] .logo-text{background:linear-gradient(135deg,#7BB3FF 0%,#4D8AE0 100%);-webkit-background-clip:text;background-clip:text}
 /* ── Accident view ───────────────────────────────── */
 .acc-banner{background:#FFF4E6;border:1px solid rgba(255,149,0,.2);border-radius:14px;padding:14px 16px;margin-bottom:18px}
 .acc-banner-hd{font-size:13px;font-weight:700;color:#E65100;margin-bottom:8px;display:flex;align-items:center;gap:6px}
@@ -474,7 +479,7 @@ select.fi{-webkit-appearance:none;appearance:none;background-image:url("data:ima
     <div style="min-height:calc(100vh - var(--nh));display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 20px">
       <div style="text-align:center;margin-bottom:32px">
         <svg viewBox="0 0 24 24" fill="none" stroke="var(--pr)" stroke-width="1.5" width="60" height="60" style="margin:0 auto 16px"><path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v5"/><circle cx="16" cy="19" r="2"/><circle cx="9" cy="19" r="2"/><path d="M16 17H9m7-2H9m-3 0H3"/></svg>
-        <h1 style="font-size:26px;font-weight:800;margin-bottom:8px">차량기록</h1>
+        <h1 style="font-size:30px;font-weight:900;margin-bottom:8px;background:linear-gradient(135deg,#2E5DA8 0%,#1A3C6E 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-.5px">Jcar</h1>
         <p style="font-size:14px;color:var(--tx2)">사용 목적을 선택해주세요</p>
       </div>
       <div style="display:flex;gap:12px;width:100%;max-width:380px">
@@ -495,7 +500,22 @@ select.fi{-webkit-appearance:none;appearance:none;background-image:url("data:ima
   <!-- HOME -->
   <div id="v-home" class="view">
     <div class="ab">
-      <h1>차량기록<span id="mode-badge" class="mbadge">법인</span></h1>
+      <div class="logo-wrap">
+        <svg class="logo-icon" viewBox="0 0 36 36" fill="none">
+          <defs>
+            <linearGradient id="lg1" x1="0" y1="0" x2="36" y2="36" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#2E5DA8"/>
+              <stop offset="100%" stop-color="#1A3C6E"/>
+            </linearGradient>
+          </defs>
+          <rect x="2" y="2" width="32" height="32" rx="10" fill="url(#lg1)"/>
+          <path d="M11 23.5h14M12.5 23.5V20l1.8-4.2a2 2 0 0 1 1.8-1.2h3.8a2 2 0 0 1 1.8 1.2L23.5 20v3.5M14.5 20h7" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="14.5" cy="24.5" r="1.6" fill="#fff"/>
+          <circle cx="21.5" cy="24.5" r="1.6" fill="#fff"/>
+        </svg>
+        <span class="logo-text">Jcar</span>
+        <span id="mode-badge" class="mbadge">법인</span>
+      </div>
       <div class="ab-row">
         <button class="ib" onclick="toggleTheme()" title="테마">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
@@ -2542,7 +2562,7 @@ function renderRentalReport(id){
 
   c.innerHTML=`
     <div style="text-align:center;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--bd)">
-      <div style="font-size:12px;color:var(--txm);margin-bottom:4px">차량기록 · 렌트카 점검 리포트</div>
+      <div style="font-size:12px;color:var(--txm);margin-bottom:4px">Jcar · 렌트카 점검 리포트</div>
       <div style="font-size:20px;font-weight:800">${sel?.name||'차량'}</div>
       <div style="font-size:14px;font-weight:600;letter-spacing:2px;color:var(--tx2)">${sel?.plate||''}</div>
       <div style="font-size:13px;color:var(--txm)">${sel?.make||''} ${sel?.model||''}</div>
@@ -2584,7 +2604,7 @@ function printRentalReport(){
   const r=rs.find(r=>r.id===curRentalId);
   const sel=LS.vehicles().find(v=>v.id===r?.vehicleId);
   const prev=document.title;
-  document.title=`CarLog-렌트카-${sel?.plate||''}-${r?.pickup?.date||''}`;
+  document.title=`Jcar-렌트카-${sel?.plate||''}-${r?.pickup?.date||''}`;
   window.print();
   window.addEventListener('afterprint',()=>{document.title=prev},{once:true});
 }
@@ -2708,7 +2728,7 @@ function renderChecklistReport(id){
 
   c.innerHTML=`
     <div style="text-align:center;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--bd)">
-      <div style="font-size:12px;color:var(--txm);margin-bottom:4px">차량기록 · 외관 체크리스트</div>
+      <div style="font-size:12px;color:var(--txm);margin-bottom:4px">Jcar · 외관 체크리스트</div>
       <div style="font-size:20px;font-weight:800">${sel?.name||'차량'}</div>
       <div style="font-size:14px;font-weight:600;letter-spacing:2px;color:var(--tx2)">${sel?.plate||''}</div>
       <div style="font-size:13px;color:var(--txm)">${fmtDate(r.ts)}${r.title?' · '+r.title:''}</div>
@@ -2737,7 +2757,7 @@ function printChecklistReport(){
   const r=cs.find(c=>c.id===curChkId);
   const sel=LS.vehicles().find(v=>v.id===r?.vehicleId);
   const prev=document.title;
-  document.title=`CarLog-외관체크-${sel?.plate||''}-${r?.ts?.split('T')[0]||''}`;
+  document.title=`Jcar-외관체크-${sel?.plate||''}-${r?.ts?.split('T')[0]||''}`;
   window.print();
   window.addEventListener('afterprint',()=>{document.title=prev},{once:true});
 }
@@ -2914,7 +2934,7 @@ function renderTimeline(){
 // ════════════════════════════════════════════════
 function exportData(){
   const data={
-    app:'CarLog',schemaVersion:1,exportedAt:new Date().toISOString(),
+    app:'Jcar',schemaVersion:1,exportedAt:new Date().toISOString(),
     state:{
       car_v:LS.vehicles(),car_p:LS.parking(),car_m:LS.maintenance(),
       car_a:LS.accident(),car_s:LS.status(),car_h:LS.handover(),car_r:LS.rental(),car_chk:LS.checklists(),car_cfg:LS.cfg()
@@ -2923,7 +2943,7 @@ function exportData(){
   const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
   const a=document.createElement('a');
   a.href=URL.createObjectURL(blob);
-  a.download=`CarLog-backup-${new Date().toISOString().split('T')[0]}.json`;
+  a.download=`Jcar-backup-${new Date().toISOString().split('T')[0]}.json`;
   a.click();URL.revokeObjectURL(a.href);
   toast('백업 파일이 저장됐어요');
 }
@@ -2935,7 +2955,7 @@ function importData(e){
   reader.onload=ev=>{
     try{
       const d=JSON.parse(ev.target.result);
-      if(d.app&&d.app!=='CarLog'){toast('이 파일은 차량기록 백업 파일이 아니에요');return;}
+      if(d.app&&d.app!=='CarLog'&&d.app!=='Jcar'){toast('이 파일은 Jcar 백업 파일이 아니에요');return;}
       const s=d.state||d;
       if(s.car_v)save('car_v',s.car_v);
       if(s.car_p)save('car_p',s.car_p);

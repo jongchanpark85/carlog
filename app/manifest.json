@@ -1,7 +1,7 @@
 {
-  "name": "차량기록",
-  "short_name": "차량기록",
-  "description": "사진 기반 차량 상태기록 — 주차·정비·사고·상태",
+  "name": "Jcar",
+  "short_name": "Jcar",
+  "description": "Jcar — 사진 기반 차량 기록 (주차·정비·사고·상태)",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#f8fafc",
