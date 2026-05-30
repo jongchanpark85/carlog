@@ -41,7 +41,7 @@ button{cursor:pointer;border:none;background:none}
 /* ── App shell ──────────────────────────────────── */
 #app{
   position:fixed;inset:0;
-  bottom:calc(68px + var(--sh) + env(safe-area-inset-bottom));
+  bottom:calc(68px + env(safe-area-inset-bottom));
   overflow-y:auto;-webkit-overflow-scrolling:touch;
 }
 .view{display:none;padding:12px 16px 80px;animation:fi .15s ease}
@@ -1067,15 +1067,6 @@ select.fi{-webkit-appearance:none;appearance:none;background-image:url("data:ima
   </button>
 </nav>
 
-<!-- SOS strip -->
-<button class="sos-strip" id="sos-strip" onclick="go('accident');renderAccidentView()">
-  <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-  <div class="sos-text">
-    <div class="sos-title">🚨 사고 발생 시 즉시 기록하기</div>
-    <div class="sos-sub">사진 · 상대방 번호 · 현장 위치 자동 저장</div>
-  </div>
-  <svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.6)" stroke-width="2" width="16" height="16"><path d="M9 18l6-6-6-6"/></svg>
-</button>
 
 
 <script>
@@ -1496,10 +1487,6 @@ function go(view){
 }
 
 function navTo(view){
-  // SOS: 홈에서만 표시
-  const onHome=view==='home';
-  document.getElementById('sos-strip')?.classList.toggle('show',onHome);
-
   if(view==='home'){renderHome();}
   else if(view==='parking'){initParkingForm();}
   else if(view==='vehicles'){renderVehicleList();}
@@ -1549,9 +1536,6 @@ function renderHome(){
   const c=document.getElementById('home-content');
   if(!c)return;
 
-  // FAB + SOS: 홈에서만 표시
-  document.getElementById('fab-park')?.classList.add('show');
-  document.getElementById('sos-strip')?.classList.add('show');
 
   if(!vs.length){
     c.innerHTML=`<div style="padding:20px"><div class="ob">
