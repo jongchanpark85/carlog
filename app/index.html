@@ -23,7 +23,7 @@
   --bg:#f8fafc;--sf:#fff;--card:#fff;
   --bd:#e2e8f0;--bd2:#cbd5e1;
   --tx:#0f172a;--tx2:#475569;--txm:#94a3b8;
-  --nav:#fff;--r:14px;--rs:8px;--nh:60px;
+  --nav:#fff;--r:14px;--rs:8px;--nh:60px;--sh:52px;
   --font:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 }
 [data-theme=dark]{
@@ -39,7 +39,7 @@ input,select,textarea,button{font:inherit;color:inherit}
 img{display:block;max-width:100%}
 button{cursor:pointer;border:none;background:none}
 /* ── App shell ──────────────────────────────────── */
-#app{position:fixed;inset:0;bottom:calc(var(--nh) + env(safe-area-inset-bottom));overflow-y:auto;-webkit-overflow-scrolling:touch}
+#app{position:fixed;inset:0;bottom:calc(var(--nh) + var(--sh) + env(safe-area-inset-bottom));overflow-y:auto;-webkit-overflow-scrolling:touch}
 .view{display:none;padding:12px 16px 80px;animation:fi .15s ease}
 .view.active{display:block}
 @keyframes fi{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
@@ -259,6 +259,54 @@ select.fi{-webkit-appearance:none;appearance:none;background-image:url("data:ima
 .rent-row:last-child{border-bottom:none}
 .rent-row .rl{color:var(--txm);flex-shrink:0}
 .rent-row .rv{font-weight:600;text-align:right}
+/* ── FAB ─────────────────────────────────────────── */
+.fab{position:fixed;right:24px;bottom:calc(var(--nh) + var(--sh) + env(safe-area-inset-bottom) + 12px);width:56px;height:56px;background:var(--pr);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(26,60,110,.35);z-index:96;border:none;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .1s,opacity .1s;display:none}
+.fab.show{display:flex}
+.fab:active{transform:scale(.92);opacity:.9}
+.fab svg{color:#fff;width:26px;height:26px}
+/* ── SOS strip ───────────────────────────────────── */
+.sos-strip{position:fixed;bottom:calc(var(--nh) + env(safe-area-inset-bottom));left:0;right:0;height:var(--sh);background:#FF3B30;display:none;align-items:center;padding:0 20px;gap:12px;z-index:95;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.sos-strip:active{background:#e0352b}
+.sos-strip.show{display:flex}
+.sos-text{flex:1}
+.sos-title{color:#fff;font-size:14px;font-weight:700}
+.sos-sub{color:rgba(255,255,255,.75);font-size:11px}
+/* ── Home screen (Toss-style) ─────────────────────── */
+.hs-top{padding:28px 20px 0;display:flex;align-items:flex-start;justify-content:space-between}
+.hs-greeting{font-size:13px;color:var(--txm);margin-bottom:4px}
+.hs-car-name{font-size:24px;font-weight:800;color:var(--tx);letter-spacing:-.5px;line-height:1.15}
+.hs-car-sub{font-size:13px;color:var(--txm);margin-top:3px}
+.hs-switch{font-size:12px;font-weight:700;color:var(--pr);background:var(--pr-s);border:none;border-radius:8px;padding:5px 10px;cursor:pointer;white-space:nowrap;margin-top:4px;-webkit-tap-highlight-color:transparent}
+/* Parking card */
+.pk-card{margin:20px 20px 0;background:var(--card);border:1px solid var(--bd);border-radius:18px;padding:20px;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:opacity .1s}
+.pk-card:active{opacity:.85}
+.pk-label{font-size:11px;font-weight:800;color:var(--txm);letter-spacing:.08em;text-transform:uppercase;margin-bottom:14px;display:flex;align-items:center;gap:6px}
+.pk-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.pk-floor{font-size:34px;font-weight:900;color:var(--tx);letter-spacing:-.02em;line-height:1;display:flex;align-items:baseline;gap:6px}
+.pk-zone{font-size:20px;font-weight:700;color:var(--txm)}
+.pk-addr{font-size:13px;color:var(--tx2);margin-top:7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pk-time{font-size:12px;color:var(--txm);margin-top:3px}
+.pk-empty{color:var(--txm);font-size:14px;text-align:center;padding:8px 0}
+/* Quick list */
+.ql-sec{font-size:11px;font-weight:800;color:var(--txm);letter-spacing:.08em;text-transform:uppercase;padding:22px 20px 8px}
+.ql-card{margin:0 20px;background:var(--card);border:1px solid var(--bd);border-radius:18px;overflow:hidden}
+.ql-row{display:flex;align-items:center;gap:14px;padding:16px 18px;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background .1s}
+.ql-row:not(:last-child){border-bottom:1px solid var(--bd)}
+.ql-row:active{background:var(--bg)}
+.ql-icon{width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ql-icon svg{width:19px;height:19px}
+.ql-body{flex:1;min-width:0}
+.ql-title{font-size:15px;font-weight:600;color:var(--tx)}
+.ql-sub{font-size:12px;color:var(--txm);margin-top:1px}
+.ql-chev{color:var(--bd2);flex-shrink:0}
+/* Records view */
+.rec-item{display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid var(--bd)}
+.rec-item:last-child{border-bottom:none}
+.rec-icon{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.rec-icon svg{width:20px;height:20px}
+.rec-body{flex:1;min-width:0}
+.rec-title{font-size:14px;font-weight:600;color:var(--tx);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rec-sub{font-size:12px;color:var(--txm);margin-top:1px}
 /* ── Print ───────────────────────────────────────── */
 @media print{
   .bnav,#fab,#update-banner,#toast,.no-print{display:none!important}
@@ -843,6 +891,18 @@ select.fi{-webkit-appearance:none;appearance:none;background-image:url("data:ima
     <div id="timeline-list"></div>
   </div>
 
+  <!-- RECORDS (통합 기록 탭) -->
+  <div id="v-records" class="view">
+    <div class="ab"><h1>기록</h1></div>
+    <div id="records-content"></div>
+  </div>
+
+  <!-- MYPAGE (내 정보 탭) -->
+  <div id="v-mypage" class="view">
+    <div class="ab"><h1>내 정보</h1></div>
+    <div id="mypage-content"></div>
+  </div>
+
 </div><!-- #app -->
 
 <!-- Bottom Nav -->
@@ -851,19 +911,34 @@ select.fi{-webkit-appearance:none;appearance:none;background-image:url("data:ima
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
     홈
   </button>
-  <button class="nb" id="nb-parking" onclick="navTo('parking')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 17V7h4a3 3 0 0 1 0 6H9"/></svg>
-    주차
-  </button>
-  <button class="nb" id="nb-maintenance" onclick="navTo('maintenance')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
-    정비
-  </button>
   <button class="nb" id="nb-vehicles" onclick="navTo('vehicles')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v5"/><circle cx="16" cy="19" r="2"/><circle cx="9" cy="19" r="2"/><path d="M16 17H9m7-2H9m-3 0H3"/></svg>
     차량
   </button>
+  <button class="nb" id="nb-records" onclick="navTo('records')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+    기록
+  </button>
+  <button class="nb" id="nb-mypage" onclick="navTo('mypage')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+    내 정보
+  </button>
 </nav>
+
+<!-- FAB: 주차 기록 -->
+<button class="fab" id="fab-park" onclick="initParkingForm();go('parking')" title="주차 기록">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 17V7h4a3 3 0 0 1 0 6H9"/></svg>
+</button>
+
+<!-- SOS strip -->
+<button class="sos-strip" id="sos-strip" onclick="go('accident')">
+  <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+  <div class="sos-text">
+    <div class="sos-title">🚨 사고 발생 시 즉시 기록하기</div>
+    <div class="sos-sub">사진 · 상대방 번호 · 현장 위치 자동 저장</div>
+  </div>
+  <svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.6)" stroke-width="2" width="16" height="16"><path d="M9 18l6-6-6-6"/></svg>
+</button>
 
 
 <script>
@@ -1284,18 +1359,24 @@ function go(view){
 }
 
 function navTo(view){
-  if(view==='parking'){initParkingForm();}
-  else if(view==='maintenance'){renderMaintenanceList();}
+  // FAB + SOS: 홈에서만 표시
+  const onHome=view==='home';
+  document.getElementById('fab-park')?.classList.toggle('show',onHome);
+  document.getElementById('sos-strip')?.classList.toggle('show',onHome);
+
+  if(view==='home'){renderHome();}
+  else if(view==='parking'){initParkingForm();}
   else if(view==='vehicles'){renderVehicleList();}
+  else if(view==='records'){renderRecords();}
+  else if(view==='mypage'){renderMypage();}
   go(view);
 }
 
 function updateNavBar(view){
-  ['home','parking','maintenance','vehicles'].forEach(id=>{
+  ['home','vehicles','records','mypage'].forEach(id=>{
     document.getElementById('nb-'+id)?.classList.toggle('on',view===id||
-      (id==='parking'&&(view==='parking'||view==='parking-history'))||
-      (id==='maintenance'&&(view==='maintenance'||view==='maintenance-add'))||
-      (id==='vehicles'&&(view==='vehicles'||view==='vehicle-add'||view==='vehicle-detail'))
+      (id==='vehicles'&&(view==='vehicles'||view==='vehicle-add'||view==='vehicle-detail'))||
+      (id==='records'&&(view==='maintenance'||view==='maintenance-add'||view==='status-list'||view==='status-add'||view==='timeline'))
     );
   });
 }
@@ -1330,143 +1411,143 @@ function renderHome(){
   const c=document.getElementById('home-content');
   if(!c)return;
 
+  // FAB + SOS: 홈에서만 표시
+  document.getElementById('fab-park')?.classList.add('show');
+  document.getElementById('sos-strip')?.classList.add('show');
+
   if(!vs.length){
-    c.innerHTML=`<div class="ob">
+    c.innerHTML=`<div style="padding:20px"><div class="ob">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v5"/><circle cx="16" cy="19" r="2"/><circle cx="9" cy="19" r="2"/><path d="M16 17H9m7-2H9m-3 0H3"/></svg>
       <h3>차량을 등록해주세요</h3>
       <p>차량 등록 후 주차·정비·사고 기록을 시작할 수 있어요</p>
       <button class="btn btn-pr" style="max-width:200px;margin:0 auto" onclick="go('vehicle-add')">차량 등록하기</button>
-    </div>`;
+    </div></div>`;
     return;
   }
 
-  // Active parking
-  const allParking=LS.parking();
-  const active=allParking.find(p=>p.vehicleId===sel?.id&&p.isActive);
-
-  // Recent records (parking + maintenance, sorted)
-  const recentP=LS.parking().filter(p=>p.vehicleId===sel?.id).slice(0,3)
-    .map(r=>({type:'주차',ts:new Date(r.ts),title:r.addr||r.floor||'주차 기록',sub:fmtRelative(r.ts),color:'var(--pr)',icon:'<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 17V7h4a3 3 0 0 1 0 6H9"/>'}));
-  const recentM=LS.maintenance().filter(m=>m.vehicleId===sel?.id).slice(0,3)
-    .map(r=>({type:'정비',ts:new Date(r.date),title:r.type,sub:fmtRelative(r.date),color:'var(--tl)',icon:'<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>'}));
-  const recent=[...recentP,...recentM].sort((a,b)=>b.ts-a.ts).slice(0,5);
+  const allParking=LS.parking().filter(p=>p.vehicleId===sel?.id);
+  const active=allParking.find(p=>p.isActive);
+  const lastParking=active||allParking.sort((a,b)=>new Date(b.ts)-new Date(a.ts))[0]||null;
+  const lastMaint=LS.maintenance().filter(m=>m.vehicleId===sel?.id).sort((a,b)=>new Date(b.date)-new Date(a.date))[0]||null;
+  const lastStatus=LS.status().filter(s=>s.vehicleId===sel?.id).sort((a,b)=>new Date(b.ts)-new Date(a.ts))[0]||null;
+  const hour=new Date().getHours();
+  const greet=hour<12?'좋은 아침이에요 ☀️':hour<18?'안녕하세요 👋':'좋은 저녁이에요 🌙';
+  const chevSvg=`<svg class="ql-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M9 18l6-6-6-6"/></svg>`;
 
   let html='';
 
-  // Vehicle selector card
-  html+=`<div class="vc" onclick="openVModal()">
-    <div style="display:flex;align-items:center;justify-content:space-between">
-      <div>
-        <h2>${sel.name}</h2>
-        <div class="s1">${sel.plate}${sel.make?' · '+sel.make:''} ${sel.model||''}</div>
-        <div class="s2">${fmtMileage(sel.mileage||0)}</div>
-      </div>
-      ${vs.length>1?`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20" class="swap"><path d="M8 3l4 8 5-5v13H3V6l5 5z"/></svg>`:''}
+  // ── 상단: 인삿말 + 차량 정보
+  html+=`<div class="hs-top">
+    <div>
+      <p class="hs-greeting">${greet}</p>
+      <h2 class="hs-car-name">${sel.name}</h2>
+      <p class="hs-car-sub">${sel.plate}${sel.make?' · '+sel.make:''} ${sel.model||''} · ${fmtMileage(sel.mileage||0)}</p>
     </div>
+    ${vs.length>1?`<button class="hs-switch" onclick="openVModal()">바꾸기</button>`:''}
   </div>`;
 
-  // Active parking widget
-  if(active){
-    const addr=active.addr||null;
-    const photo=active.photos?.[0];
-    html+=`<div class="pw" onclick="navTo('parking')">
-      <div class="pw-hd">
-        <div class="pw-label"><span class="pw-dot"></span>주차 중</div>
-        <button class="pw-exit" onclick="event.stopPropagation();exitParking('${active.id}')">출차</button>
-      </div>
-      <div class="pw-bd">
-        ${photo
-          ?`<img class="pw-photo" src="${photo}" onclick="event.stopPropagation();openLightbox('${photo}')">`
-          :`<div class="pw-noimg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="22" height="22" style="color:var(--ok)"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 17V7h4a3 3 0 0 1 0 6H9"/></svg></div>`
-        }
-        <div class="pw-info">
-          ${active.floor
-            ?`<div class="pw-floor">${active.floor}${active.zone?`<span class="pw-zone">${active.zone}</span>`:''}</div>`
-            :`<div class="pw-nofloor">주차 중${active.zone?` · ${active.zone}`:''}</div>`}
-          ${addr?`<div class="pw-addr">${addr}</div>`:''}
-          <div class="pw-sub">${fmtDate(active.ts)} ${fmtTime(active.ts)} 주차 시작</div>
-          <div class="pw-elapsed">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="12" height="12"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-            <span id="pw-elapsed-time">—</span>
-          </div>
-        </div>
-      </div>
-    </div>`;
-  }
-
-  // Quick actions
-  const isBiz=LS.mode()==='business';
-  html+=`<p class="sec">빠른 기록</p>
-  <div class="qg">
-    <button class="qb" style="color:var(--pr)" onclick="navTo('parking')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 17V7h4a3 3 0 0 1 0 6H9"/></svg>
-      주차 기록
-    </button>
-    <button class="qb" style="color:var(--tl)" onclick="go('maintenance-add');initMaintenanceForm()">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
-      정비 기록
-    </button>
-    <button class="qb" style="color:var(--pu)" onclick="initStatusForm();go('status-add')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-      상태 기록
-    </button>
-    <button class="qb" style="color:var(--pu)" onclick="go('status-list');renderStatusList()">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
-      상태 이력
-    </button>
-    <button class="qb" style="color:var(--warn)" onclick="go('timeline')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-      타임라인
-    </button>
-    <button class="qb" style="color:var(--ok)" onclick="go('checklist')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-      외관 체크
-    </button>
-    <button class="qb" style="color:var(--dng)" onclick="go('accident')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-      사고 대응
-    </button>
-    ${isBiz?`
-    <button class="qb" style="color:var(--tl)" onclick="go('drivelog');renderDriveLog()">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-      운행일지
-    </button>
-    <button class="qb" style="color:var(--warn)" onclick="initHandoverForm();go('handover-add')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
-      인수인계
-    </button>
-    <button class="qb" style="color:var(--pr-l)" onclick="go('handover');renderHandoverList()">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
-      인계이력
-    </button>
-    <button class="qb" style="color:var(--ok)" onclick="go('rental')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
-      렌트카 점검
-    </button>`:''}
+  // ── 중앙 카드: 마지막 주차 위치
+  html+=`<div class="pk-card" onclick="${active?`navTo('parking')`:`go('parking-history');renderParkingHistory()`}">
+    <div class="pk-label">
+      <span class="pk-dot" style="background:${active?'var(--ok)':'var(--txm)'}"></span>
+      ${active?'주차 중':'마지막 주차 위치'}
+      ${active?`<button class="pw-exit" style="margin-left:auto;flex-shrink:0" onclick="event.stopPropagation();exitParking('${active.id}')">출차</button>`:''}
+    </div>
+    ${lastParking
+      ?`<div class="pk-floor">${lastParking.floor||'—'}${lastParking.zone?`<span class="pk-zone">${lastParking.zone}</span>`:''}</div>
+        ${lastParking.addr?`<div class="pk-addr">${lastParking.addr}</div>`:''}
+        <div class="pk-time">${active?`<span id="pw-elapsed-time">—</span> 주차 중`:fmtRelative(lastParking.ts)}</div>`
+      :`<div class="pk-empty">아직 주차 기록이 없어요<br><small style="color:var(--txm);font-size:11px">FAB 버튼으로 주차를 기록해보세요</small></div>`
+    }
   </div>`;
 
-  // Recent records
-  if(recent.length){
-    html+=`<p class="sec">최근 기록</p>
-    <div class="irows" style="padding:0 12px">`;
-    recent.forEach(r=>{
-      html+=`<div class="rt">
-        <div class="ri" style="background:${r.color}1a">
-          <svg viewBox="0 0 24 24" fill="none" stroke="${r.color}" stroke-width="2">${r.icon}</svg>
-        </div>
-        <div class="rinfo">
-          <div class="rt1">${r.title}</div>
-          <div class="rs">${r.sub}</div>
-        </div>
-        <span class="rbadge" style="background:${r.color}1a;color:${r.color}">${r.type}</span>
-      </div>`;
-    });
-    html+='</div>';
-  }
+  // ── 리스트: 정비기록 / 계기판 촬영 / 차량상태
+  html+=`<p class="ql-sec">빠른 메뉴</p>
+  <div class="ql-card">
+    <div class="ql-row" onclick="go('maintenance-add');initMaintenanceForm()">
+      <div class="ql-icon" style="background:var(--tl-s)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="var(--tl)" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+      </div>
+      <div class="ql-body">
+        <div class="ql-title">정비 기록</div>
+        <div class="ql-sub">${lastMaint?lastMaint.type+' · '+fmtRelative(lastMaint.date):'기록 없음'}</div>
+      </div>${chevSvg}
+    </div>
+    <div class="ql-row" onclick="initStatusForm();go('status-add')">
+      <div class="ql-icon" style="background:var(--pr-s)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="var(--pr)" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+      </div>
+      <div class="ql-body">
+        <div class="ql-title">계기판 촬영</div>
+        <div class="ql-sub">주행거리 · 경고등 기록</div>
+      </div>${chevSvg}
+    </div>
+    <div class="ql-row" onclick="go('status-list');renderStatusList()">
+      <div class="ql-icon" style="background:var(--pu-s)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="var(--pu)" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+      </div>
+      <div class="ql-body">
+        <div class="ql-title">차량 상태</div>
+        <div class="ql-sub">${lastStatus?lastStatus.category+' · '+fmtRelative(lastStatus.ts):'기록 없음'}</div>
+      </div>${chevSvg}
+    </div>
+  </div>
+  <div style="height:24px"></div>`;
 
   c.innerHTML=html;
-  updateNavBar('home');
   if(active)_startParkTimer(active.ts);else _clearParkTimer();
+}
+
+// ════════════════════════════════════════════════
+// RECORDS VIEW (통합 기록)
+// ════════════════════════════════════════════════
+function renderRecords(){
+  const sel=getSelectedVehicle();
+  const c=document.getElementById('records-content');
+  if(!c||!sel){c&&(c.innerHTML=`<div class="empty"><p>차량을 먼저 등록해주세요</p></div>`);return;}
+  const allP=LS.parking().filter(p=>p.vehicleId===sel.id).map(r=>({ts:new Date(r.ts),type:'주차',title:r.addr||r.floor||'주차 기록',sub:fmtRelative(r.ts),col:'var(--pr)',icon:'<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 17V7h4a3 3 0 0 1 0 6H9"/>'}));
+  const allM=LS.maintenance().filter(m=>m.vehicleId===sel.id).map(r=>({ts:new Date(r.date),type:'정비',title:r.type,sub:fmtRelative(r.date)+(!r.cost?'':' · '+fmtCost(r.cost)),col:'var(--tl)',icon:'<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>'}));
+  const allS=LS.status().filter(s=>s.vehicleId===sel.id).map(r=>({ts:new Date(r.ts),type:'상태',title:r.category,sub:fmtRelative(r.ts),col:'var(--pu)',icon:'<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>'}));
+  const allA=LS.accident().filter(a=>a.vehicleId===sel.id).map(r=>({ts:new Date(r.ts),type:'사고',title:'사고 기록',sub:fmtRelative(r.ts),col:'var(--dng)',icon:'<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>'}));
+  const all=[...allP,...allM,...allS,...allA].sort((a,b)=>b.ts-a.ts);
+  if(!all.length){c.innerHTML=`<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg><p>기록이 없어요</p></div>`;return;}
+  c.innerHTML=`<div style="padding:0 16px">${all.map(r=>`<div class="rec-item">
+    <div class="rec-icon" style="background:${r.col}1a"><svg viewBox="0 0 24 24" fill="none" stroke="${r.col}" stroke-width="2">${r.icon}</svg></div>
+    <div class="rec-body"><div class="rec-title">${r.title}</div><div class="rec-sub">${r.sub}</div></div>
+    <span class="rbadge" style="background:${r.col}1a;color:${r.col}">${r.type}</span>
+  </div>`).join('')}</div>`;
+}
+
+// ════════════════════════════════════════════════
+// MYPAGE VIEW (내 정보)
+// ════════════════════════════════════════════════
+function renderMypage(){
+  const sel=getSelectedVehicle();
+  const cfg=LS.cfg();
+  const c=document.getElementById('mypage-content');
+  if(!c)return;
+  c.innerHTML=`<div style="padding:0 16px">
+    ${sel?`<div class="vc" onclick="openVModal()" style="margin-bottom:16px">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div><h2>${sel.name}</h2><div class="s1">${sel.plate}${sel.make?' · '+sel.make:''} ${sel.model||''}</div><div class="s2">${fmtMileage(sel.mileage||0)}</div></div>
+        <svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.7)" stroke-width="2" width="18" height="18"><path d="M9 18l6-6-6-6"/></svg>
+      </div>
+    </div>`:''}
+    <div class="irows">
+      <div class="irow" onclick="toggleTheme()" style="cursor:pointer">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+        <span class="lb">테마</span><span class="vl">${document.documentElement.getAttribute('data-theme')==='dark'?'다크':'라이트'}</span>
+      </div>
+      <div class="irow" onclick="openSettings()" style="cursor:pointer">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <span class="lb">설정 및 모드</span><span class="vl">${cfg.mode==='business'?'법인':'개인'}</span>
+      </div>
+      <div class="irow" onclick="go('vehicle-add')" style="cursor:pointer">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+        <span class="lb">차량 추가</span>
+      </div>
+    </div>
+  </div>`;
 }
 
 function openVModal(){
@@ -1602,7 +1683,7 @@ function saveParking(){
   ps.unshift(rec);
   LS.saveParking(ps);
   toast('주차 기록이 저장됐어요');
-  go('home');renderHome();
+  navTo('home');
 }
 
 // ════════════════════════════════════════════════
@@ -1757,7 +1838,7 @@ function saveVehicle(){
   const vs=LS.vehicles();vs.push(rec);LS.saveVehicles(vs);
   setSelectedVehicle(rec.id);
   toast('차량이 등록됐어요');
-  go('home');renderHome();
+  navTo('home');
 }
 
 function renderVehicleList(){
@@ -1873,7 +1954,7 @@ function saveAccident(){
   };
   const as=LS.accident();as.unshift(rec);LS.saveAccident(as);
   toast('사고 기록이 저장됐어요');
-  go('home');renderHome();
+  navTo('home');
 }
 
 // ════════════════════════════════════════════════
@@ -1904,7 +1985,7 @@ function saveStatus(){
   };
   const ss=LS.status();ss.unshift(rec);LS.saveStatus(ss);
   toast('상태 기록이 저장됐어요');
-  go('home');renderHome();
+  navTo('home');
 }
 
 // ════════════════════════════════════════════════
