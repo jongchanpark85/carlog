@@ -1864,7 +1864,14 @@ function saveParking(){
   const rec={
     id:uid(),vehicleId:sel.id,ts:new Date().toISOString(),
     lat:parkingLat,lng:parkingLng,addr:parkingAddr,
-    floor:selFloor,zone:(()=>{const zoneKo=document.getElementById('zone-ko').value;const zoneEn=document.getElementById('zone-en').value;const zoneNum=document.getElementById('zone-num').value;const zoneManual=document.getElementById('zone-input').value.trim();return[zoneKo,zoneEn,zoneNum,zoneManual].filter(Boolean).join('-')||null;})()
+    floor:selFloor,
+    zone:(()=>{
+      const zoneKo=document.getElementById('zone-ko').value;
+      const zoneEn=document.getElementById('zone-en').value;
+      const zoneNum=document.getElementById('zone-num').value;
+      const zoneManual=document.getElementById('zone-input').value.trim();
+      return [zoneKo,zoneEn,zoneNum,zoneManual].filter(Boolean).join('-')||null;
+    })(),
     memo:document.getElementById('parking-memo').value.trim()||null,
     purpose:LS.mode()==='business'?selPurpose:null,
     ocrText:parkingOcrText||null,
@@ -2951,7 +2958,7 @@ document.getElementById('confirm-ok').onclick=()=>{_confirmCb&&_confirmCb();clos
 // Extended go: init forms + restore nav after onboarding
 const origGo=go;
 window.go=function(view){
-  if(view==='accident')initAccidentForm();
+  if(view==='accident'){initAccidentForm();setTimeout(renderAccidentView,0);}
   if(view==='drivelog')renderDriveLog();
   if(view==='handover')renderHandoverList();
   if(view==='status-list')renderStatusList();
