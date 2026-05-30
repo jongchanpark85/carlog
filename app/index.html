@@ -39,15 +39,43 @@ input,select,textarea,button{font:inherit;color:inherit}
 img{display:block;max-width:100%}
 button{cursor:pointer;border:none;background:none}
 /* ── App shell ──────────────────────────────────── */
-#app{position:fixed;inset:0;bottom:calc(var(--nh) + var(--sh) + env(safe-area-inset-bottom));overflow-y:auto;-webkit-overflow-scrolling:touch}
+#app{
+  position:fixed;inset:0;
+  bottom:calc(68px + var(--sh) + env(safe-area-inset-bottom));
+  overflow-y:auto;-webkit-overflow-scrolling:touch;
+}
 .view{display:none;padding:12px 16px 80px;animation:fi .15s ease}
 .view.active{display:block}
 @keyframes fi{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
 /* ── Bottom nav ─────────────────────────────────── */
-.bnav{position:fixed;bottom:0;left:0;right:0;height:calc(var(--nh) + env(safe-area-inset-bottom));background:var(--nav);border-top:1px solid var(--bd);display:flex;align-items:flex-start;padding-top:6px;z-index:100}
-.nb{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 2px;color:var(--txm);font-size:10px;font-weight:600}
-.nb.on{color:var(--pr)}
+.bnav{
+  position:fixed;bottom:0;left:0;right:0;
+  height:calc(68px + env(safe-area-inset-bottom));
+  background:#fff;border-top:0.5px solid #e5e5ea;
+  display:flex;align-items:flex-end;padding:0 8px;
+  padding-bottom:env(safe-area-inset-bottom);z-index:100;
+}
+.nb{
+  flex:1;display:flex;flex-direction:column;align-items:center;
+  gap:3px;padding:8px 4px 10px;background:none;border:none;
+  color:#aaa;font-size:10px;font-weight:500;font-family:inherit;
+  cursor:pointer;-webkit-tap-highlight-color:transparent;
+}
 .nb svg{width:22px;height:22px}
+.nb.on{color:#1a3c6e}
+.nb-fab-wrap{
+  flex:1;display:flex;flex-direction:column;align-items:center;
+  gap:4px;padding-bottom:8px;margin-top:-20px;cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+  color:#1a3c6e;font-size:10px;font-weight:600;font-family:inherit;
+  border:none;background:none;
+}
+.nb-fab-btn{
+  width:52px;height:52px;border-radius:50%;background:#1a3c6e;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 4px 16px rgba(26,60,110,.35);
+}
+.nb-fab-btn svg{width:26px;height:26px;color:#fff}
 /* ── Appbar ─────────────────────────────────────── */
 .ab{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
 .ab h1{font-size:20px;font-weight:800;letter-spacing:-.3px}
@@ -259,13 +287,25 @@ select.fi{-webkit-appearance:none;appearance:none;background-image:url("data:ima
 .rent-row:last-child{border-bottom:none}
 .rent-row .rl{color:var(--txm);flex-shrink:0}
 .rent-row .rv{font-weight:600;text-align:right}
-/* ── FAB ─────────────────────────────────────────── */
-.fab{position:fixed;right:24px;bottom:calc(var(--nh) + var(--sh) + env(safe-area-inset-bottom) + 12px);width:56px;height:56px;background:var(--pr);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(26,60,110,.35);z-index:96;border:none;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .1s,opacity .1s;display:none}
-.fab.show{display:flex}
-.fab:active{transform:scale(.92);opacity:.9}
-.fab svg{color:#fff;width:26px;height:26px}
+/* ── FAB (center nav) ─────────────────────────────── */
+.fl-type-btn{
+  flex:1;height:38px;border:1.5px solid var(--bd2);border-radius:10px;
+  font-size:14px;font-weight:700;color:var(--tx2);background:var(--sf);
+  cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent;
+}
+.fl-type-on{border-color:var(--pr);background:var(--pr);color:#fff;}
+.zone-sel{
+  flex:1;padding:10px 8px;background:var(--sf);border:1.5px solid var(--bd2);
+  border-radius:10px;font-size:13px;color:var(--tx);font-family:inherit;outline:none;
+  -webkit-appearance:none;text-align:center;
+}
 /* ── SOS strip ───────────────────────────────────── */
-.sos-strip{position:fixed;bottom:calc(var(--nh) + env(safe-area-inset-bottom));left:0;right:0;height:var(--sh);background:#FF3B30;display:none;align-items:center;padding:0 20px;gap:12px;z-index:95;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.sos-strip{
+  position:fixed;bottom:calc(68px + env(safe-area-inset-bottom));
+  left:0;right:0;height:var(--sh);background:#FF3B30;
+  display:none;align-items:center;padding:0 20px;gap:12px;z-index:95;cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
 .sos-strip:active{background:#e0352b}
 .sos-strip.show{display:flex}
 .sos-text{flex:1}
@@ -450,9 +490,43 @@ select.fi{-webkit-appearance:none;appearance:none;background-image:url("data:ima
     <p class="sec">위치</p>
     <div id="parking-loc" class="lrow"><div class="spin"></div><span class="lt">위치 확인 중...</span></div>
     <p class="sec">층수 <span style="font-weight:400;font-size:13px;color:var(--txm)">(선택)</span></p>
-    <div id="floor-chips" class="cg"></div>
+    <!-- 지상/지하 토글 -->
+    <div style="display:flex;gap:8px;margin-bottom:10px">
+      <button id="fl-ground" class="fl-type-btn fl-type-on" onclick="setFloorType('ground')">지상</button>
+      <button id="fl-under"  class="fl-type-btn" onclick="setFloorType('under')">지하</button>
+    </div>
+    <!-- 1~7F 버튼 -->
+    <div id="floor-chips" class="cg" style="margin-bottom:6px"></div>
     <p class="sec">구역 <span style="font-weight:400;font-size:13px;color:var(--txm)">(선택)</span></p>
-    <input id="zone-input" class="fi" placeholder="A구역, B-23 등" style="margin-bottom:12px">
+    <!-- 드롭다운 3개 -->
+    <div style="display:flex;gap:8px;margin-bottom:10px">
+      <select id="zone-ko" class="zone-sel">
+        <option value="">가~하</option>
+        <option>가</option><option>나</option><option>다</option><option>라</option>
+        <option>마</option><option>바</option><option>사</option><option>아</option>
+        <option>자</option><option>차</option><option>카</option><option>타</option>
+        <option>파</option><option>하</option>
+      </select>
+      <select id="zone-en" class="zone-sel">
+        <option value="">A~Z</option>
+        <option>A</option><option>B</option><option>C</option><option>D</option>
+        <option>E</option><option>F</option><option>G</option><option>H</option>
+        <option>I</option><option>J</option><option>K</option><option>L</option>
+        <option>M</option><option>N</option><option>O</option><option>P</option>
+        <option>Q</option><option>R</option><option>S</option><option>T</option>
+        <option>U</option><option>V</option><option>W</option><option>X</option>
+        <option>Y</option><option>Z</option>
+      </select>
+      <select id="zone-num" class="zone-sel">
+        <option value="">숫자</option>
+        <option>1</option><option>2</option><option>3</option><option>4</option>
+        <option>5</option><option>6</option><option>7</option><option>8</option>
+        <option>9</option><option>10</option><option>11</option><option>12</option>
+        <option>13</option><option>14</option><option>15</option><option>16</option>
+        <option>17</option><option>18</option><option>19</option><option>20</option>
+      </select>
+    </div>
+    <input id="zone-input" class="fi" placeholder="구역 직접 입력 (선택사항)" style="margin-bottom:12px">
     <div id="parking-purpose-section" style="display:none">
       <p class="sec">운행 목적</p>
       <div id="purpose-chips" class="cg" style="margin-bottom:12px"></div>
@@ -627,18 +701,26 @@ select.fi{-webkit-appearance:none;appearance:none;background-image:url("data:ima
 
   <!-- ACCIDENT -->
   <div id="v-accident" class="view">
-    <button class="back" onclick="go('home')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><path d="M15 18l-6-6 6-6"/></svg>
-      뒤로
-    </button>
-    <div class="ah">
-      <h2>⚠ 사고 발생 시 즉시 기록하세요</h2>
-      <ol>
+    <button class="back" onclick="go('home')">← 뒤로</button>
+    <h1 style="font-size:20px;font-weight:700;color:#111;margin-bottom:16px">사고 대응</h1>
+
+    <!-- 등록 차량 보험 정보 -->
+    <div id="acc-insurance-card"></div>
+
+    <!-- 비상 연락처 (미리 등록된 번호) -->
+    <div id="acc-emergency-contacts"></div>
+
+    <!-- 긴급 안내 배너 -->
+    <div style="background:#FFF3E0;border:1px solid rgba(255,149,0,.25);border-radius:14px;padding:14px 16px;margin-bottom:16px">
+      <div style="font-size:13px;font-weight:700;color:#E65100;margin-bottom:6px">사고 발생 시 순서</div>
+      <ol style="font-size:12px;color:#E65100;padding-left:16px;line-height:1.8;opacity:.9">
         <li>현장 사진을 찍어두세요</li>
         <li>상대방 정보를 기록하세요</li>
-        <li>보험사에 연락하세요</li>
+        <li>보험사에 즉시 연락하세요</li>
       </ol>
     </div>
+
+    <!-- 현장 기록 -->
     <div id="acc-vehicle-info"></div>
     <p class="sec">현장 사진</p>
     <div id="acc-photos" class="pgrid"></div>
@@ -646,22 +728,18 @@ select.fi{-webkit-appearance:none;appearance:none;background-image:url("data:ima
     <div id="acc-loc" class="lrow"><div class="spin"></div><span class="lt">위치 확인 중...</span></div>
     <p class="sec">상대방 정보</p>
     <div class="fg"><label>상대방 번호판</label><input id="acc-plate" class="fi" placeholder="12가3456" style="text-transform:uppercase"></div>
-    <div class="fg"><label>상대방 연락처</label><input id="acc-contact" class="fi" placeholder="010-0000-0000" type="tel"></div>
-    <div class="fg"><label>사고 메모</label><textarea id="acc-memo" class="fi" rows="3" placeholder="사고 경위를 간략히 기록하세요"></textarea></div>
-    <button class="btn btn-dng" onclick="saveAccident()">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v14a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-      저장
-    </button>
-    <p class="sec" style="margin-top:24px">보험사 긴급출동</p>
-    <div class="irows">
-      <div class="ins"><span class="ins-n">삼성화재</span><span class="ins-p" onclick="copyText('1588-5114')">1588-5114</span></div>
-      <div class="ins"><span class="ins-n">현대해상</span><span class="ins-p" onclick="copyText('1588-5656')">1588-5656</span></div>
-      <div class="ins"><span class="ins-n">KB손보</span><span class="ins-p" onclick="copyText('1588-0588')">1588-0588</span></div>
-      <div class="ins"><span class="ins-n">메리츠화재</span><span class="ins-p" onclick="copyText('1566-7711')">1566-7711</span></div>
-      <div class="ins"><span class="ins-n">DB손보</span><span class="ins-p" onclick="copyText('1588-0100')">1588-0100</span></div>
-      <div class="ins"><span class="ins-n">한화손보</span><span class="ins-p" onclick="copyText('1566-8000')">1566-8000</span></div>
+    <div class="fg"><label>상대방 연락처</label>
+      <div style="display:flex;gap:8px">
+        <input id="acc-contact" class="fi" placeholder="010-0000-0000" type="tel" style="flex:1">
+        <button onclick="callAccContact()" style="height:48px;padding:0 14px;background:var(--ok);color:#fff;border-radius:10px;font-weight:700;font-size:13px;font-family:inherit;border:none;white-space:nowrap">전화</button>
+      </div>
     </div>
-    <p style="font-size:11px;color:var(--txm);text-align:center;margin-top:8px">번호 탭 → 복사</p>
+    <div class="fg"><label>사고 메모</label><textarea id="acc-memo" class="fi" rows="3" placeholder="사고 경위를 간략히 기록하세요"></textarea></div>
+    <button class="btn btn-dng" onclick="saveAccident()">저장</button>
+
+    <!-- 보험사 목록 (전화 연결) -->
+    <p class="sec" style="margin-top:24px">보험사 긴급출동</p>
+    <div id="acc-ins-list" style="background:#fff;border:0.5px solid #efefef;border-radius:16px;overflow:hidden"></div>
   </div>
 
   <!-- DRIVE LOG (business) -->
@@ -911,13 +989,20 @@ select.fi{-webkit-appearance:none;appearance:none;background-image:url("data:ima
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
     홈
   </button>
+  <button class="nb" id="nb-records" onclick="navTo('records')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+    기록
+  </button>
+  <!-- 가운데 FAB -->
+  <div class="nb-fab-wrap" id="nb-parking" onclick="initParkingForm();go('parking')">
+    <div class="nb-fab-btn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 17V7h4a3 3 0 0 1 0 6H9"/></svg>
+    </div>
+    <span>주차</span>
+  </div>
   <button class="nb" id="nb-vehicles" onclick="navTo('vehicles')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v5"/><circle cx="16" cy="19" r="2"/><circle cx="9" cy="19" r="2"/><path d="M16 17H9m7-2H9m-3 0H3"/></svg>
     차량
-  </button>
-  <button class="nb" id="nb-records" onclick="navTo('records')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-    기록
   </button>
   <button class="nb" id="nb-mypage" onclick="navTo('mypage')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
@@ -925,13 +1010,8 @@ select.fi{-webkit-appearance:none;appearance:none;background-image:url("data:ima
   </button>
 </nav>
 
-<!-- FAB: 주차 기록 -->
-<button class="fab" id="fab-park" onclick="initParkingForm();go('parking')" title="주차 기록">
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 17V7h4a3 3 0 0 1 0 6H9"/></svg>
-</button>
-
 <!-- SOS strip -->
-<button class="sos-strip" id="sos-strip" onclick="go('accident')">
+<button class="sos-strip" id="sos-strip" onclick="go('accident');renderAccidentView()">
   <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
   <div class="sos-text">
     <div class="sos-title">🚨 사고 발생 시 즉시 기록하기</div>
@@ -1359,9 +1439,8 @@ function go(view){
 }
 
 function navTo(view){
-  // FAB + SOS: 홈에서만 표시
+  // SOS: 홈에서만 표시
   const onHome=view==='home';
-  document.getElementById('fab-park')?.classList.toggle('show',onHome);
   document.getElementById('sos-strip')?.classList.toggle('show',onHome);
 
   if(view==='home'){renderHome();}
@@ -1373,12 +1452,14 @@ function navTo(view){
 }
 
 function updateNavBar(view){
-  ['home','vehicles','records','mypage'].forEach(id=>{
-    document.getElementById('nb-'+id)?.classList.toggle('on',view===id||
-      (id==='vehicles'&&(view==='vehicles'||view==='vehicle-add'||view==='vehicle-detail'))||
-      (id==='records'&&(view==='maintenance'||view==='maintenance-add'||view==='status-list'||view==='status-add'||view==='timeline'))
+  ['home','records','vehicles','mypage'].forEach(id=>{
+    document.getElementById('nb-'+id)?.classList.toggle('on',
+      view===id||
+      (id==='records'&&['maintenance','maintenance-add','status-list','status-add','timeline','parking-history'].includes(view))||
+      (id==='vehicles'&&['vehicles','vehicle-add','vehicle-detail'].includes(view))
     );
   });
+  // FAB(주차) 탭은 active 스타일 없음
 }
 
 // ════════════════════════════════════════════════
@@ -1504,18 +1585,59 @@ function renderHome(){
 function renderRecords(){
   const sel=getSelectedVehicle();
   const c=document.getElementById('records-content');
-  if(!c||!sel){c&&(c.innerHTML=`<div class="empty"><p>차량을 먼저 등록해주세요</p></div>`);return;}
-  const allP=LS.parking().filter(p=>p.vehicleId===sel.id).map(r=>({ts:new Date(r.ts),type:'주차',title:r.addr||r.floor||'주차 기록',sub:fmtRelative(r.ts),col:'var(--pr)',icon:'<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 17V7h4a3 3 0 0 1 0 6H9"/>'}));
-  const allM=LS.maintenance().filter(m=>m.vehicleId===sel.id).map(r=>({ts:new Date(r.date),type:'정비',title:r.type,sub:fmtRelative(r.date)+(!r.cost?'':' · '+fmtCost(r.cost)),col:'var(--tl)',icon:'<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>'}));
-  const allS=LS.status().filter(s=>s.vehicleId===sel.id).map(r=>({ts:new Date(r.ts),type:'상태',title:r.category,sub:fmtRelative(r.ts),col:'var(--pu)',icon:'<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>'}));
-  const allA=LS.accident().filter(a=>a.vehicleId===sel.id).map(r=>({ts:new Date(r.ts),type:'사고',title:'사고 기록',sub:fmtRelative(r.ts),col:'var(--dng)',icon:'<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>'}));
-  const all=[...allP,...allM,...allS,...allA].sort((a,b)=>b.ts-a.ts);
-  if(!all.length){c.innerHTML=`<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg><p>기록이 없어요</p></div>`;return;}
-  c.innerHTML=`<div style="padding:0 16px">${all.map(r=>`<div class="rec-item">
-    <div class="rec-icon" style="background:${r.col}1a"><svg viewBox="0 0 24 24" fill="none" stroke="${r.col}" stroke-width="2">${r.icon}</svg></div>
-    <div class="rec-body"><div class="rec-title">${r.title}</div><div class="rec-sub">${r.sub}</div></div>
-    <span class="rbadge" style="background:${r.col}1a;color:${r.col}">${r.type}</span>
-  </div>`).join('')}</div>`;
+  if(!c)return;
+  if(!sel){
+    c.innerHTML=`<div class="empty"><p>차량을 먼저 등록해주세요</p></div>`;
+    return;
+  }
+  const pCount=LS.parking().filter(p=>p.vehicleId===sel.id).length;
+  const mCount=LS.maintenance().filter(m=>m.vehicleId===sel.id).length;
+  const aCount=LS.accident().filter(a=>a.vehicleId===sel.id).length;
+  const sCount=LS.status().filter(s=>s.vehicleId===sel.id).length;
+
+  // 최근 기록 (최신 5개, 모든 유형 합산)
+  const allRec=[
+    ...LS.parking().filter(p=>p.vehicleId===sel.id).map(r=>({ts:new Date(r.ts),label:r.addr||r.floor||'주차',type:'주차',col:'#007AFF'})),
+    ...LS.maintenance().filter(m=>m.vehicleId===sel.id).map(r=>({ts:new Date(r.date),label:r.type,type:'정비',col:'#FF9500'})),
+    ...LS.accident().filter(a=>a.vehicleId===sel.id).map(r=>({ts:new Date(r.ts),label:'사고 기록',type:'사고',col:'#FF3B30'})),
+    ...LS.status().filter(s=>s.vehicleId===sel.id).map(r=>({ts:new Date(r.ts),label:r.category,type:'상태',col:'#AF52DE'})),
+  ].sort((a,b)=>b.ts-a.ts).slice(0,5);
+
+  c.innerHTML=`
+    <div style="padding:0 20px">
+      <div style="font-size:20px;font-weight:700;color:#111;margin-bottom:20px">기록</div>
+      <div style="font-size:11px;font-weight:700;color:#aaa;letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px">카테고리</div>
+      <div style="background:#f8f8f8;border-radius:16px;overflow:hidden;margin-bottom:20px">
+        ${[
+          {icon:'🅿',bg:'#EAF2FF',label:'주차 기록',sub:'위치 · 층수 · 구역',cnt:pCount,fn:`go('parking-history');renderParkingHistory()`},
+          {icon:'🔧',bg:'#FFF3E0',label:'정비 기록',sub:'오일 · 타이어 · 검사',cnt:mCount,fn:`go('maintenance');renderMaintenanceList()`},
+          {icon:'⚠️',bg:'#FFEBEE',label:'사고 기록',sub:'사진 · 위치 · 상대방',cnt:aCount,fn:`go('accident');renderAccidentView()`},
+          {icon:'📷',bg:'#F3E8FF',label:'차량 상태',sub:'긁힘 · 경고등 · 메모',cnt:sCount,fn:`go('status-list');renderStatusList()`},
+        ].map(row=>`
+          <div onclick="${row.fn}" style="display:flex;align-items:center;gap:14px;padding:14px 16px;border-bottom:0.5px solid #efefef;cursor:pointer;background:#fff;-webkit-tap-highlight-color:transparent" ontouchstart="this.style.background='#f8f9fa'" ontouchend="this.style.background='#fff'">
+            <div style="width:36px;height:36px;border-radius:10px;background:${row.bg};display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0">${row.icon}</div>
+            <div style="flex:1">
+              <div style="font-size:15px;font-weight:600;color:#111">${row.label}</div>
+              <div style="font-size:12px;color:#888;margin-top:1px">${row.sub}</div>
+            </div>
+            ${row.cnt>0?`<span style="font-size:11px;background:#f0f0f0;border-radius:10px;padding:2px 8px;color:#666;font-weight:600">${row.cnt}</span>`:''}
+            <svg viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2" width="16" height="16"><path d="M9 18l6-6-6-6"/></svg>
+          </div>
+        `).join('')}
+      </div>
+      ${allRec.length?`
+        <div style="font-size:11px;font-weight:700;color:#aaa;letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px">최근 기록</div>
+        <div style="background:#fff;border:0.5px solid #efefef;border-radius:16px;overflow:hidden">
+          ${allRec.map(r=>`
+            <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:0.5px solid #f8f8f8">
+              <span style="font-size:10px;font-weight:700;background:${r.col}1a;color:${r.col};border-radius:6px;padding:2px 7px">${r.type}</span>
+              <span style="flex:1;font-size:13px;color:#111;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.label}</span>
+              <span style="font-size:11px;color:#aaa;flex-shrink:0">${fmtRelative(r.ts)}</span>
+            </div>
+          `).join('')}
+        </div>
+      `:''}
+    </div>`;
 }
 
 // ════════════════════════════════════════════════
@@ -1526,6 +1648,7 @@ function renderMypage(){
   const cfg=LS.cfg();
   const c=document.getElementById('mypage-content');
   if(!c)return;
+  const emgContacts=(cfg.emergencyContacts||[]);
   c.innerHTML=`<div style="padding:0 16px">
     ${sel?`<div class="vc" onclick="openVModal()" style="margin-bottom:16px">
       <div style="display:flex;align-items:center;justify-content:space-between">
@@ -1547,7 +1670,53 @@ function renderMypage(){
         <span class="lb">차량 추가</span>
       </div>
     </div>
+    <!-- 비상 연락처 섹션 -->
+    <div style="margin-top:24px">
+      <div style="font-size:11px;font-weight:700;color:#aaa;letter-spacing:.06em;text-transform:uppercase;margin-bottom:10px">비상 연락처</div>
+      ${emgContacts.length?`
+        <div style="background:#fff;border:0.5px solid #efefef;border-radius:14px;overflow:hidden;margin-bottom:12px">
+          ${emgContacts.map(ec=>`
+            <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:0.5px solid #f5f5f5">
+              <div style="flex:1">
+                <div style="font-size:14px;font-weight:600;color:var(--tx)">${ec.name}</div>
+                <div style="font-size:12px;color:var(--txm)">${ec.phone}</div>
+              </div>
+              <button onclick="removeEmergencyContact('${ec.id}')" style="background:#fee2e2;color:#dc2626;border-radius:8px;padding:5px 12px;font-size:12px;font-weight:600;border:none;cursor:pointer">삭제</button>
+            </div>
+          `).join('')}
+        </div>
+      `:'<div style="font-size:13px;color:var(--txm);margin-bottom:12px">등록된 비상 연락처가 없어요</div>'}
+      <div style="background:#f8f8f8;border-radius:14px;padding:14px 16px">
+        <div style="font-size:12px;font-weight:600;color:var(--tx2);margin-bottom:10px">연락처 추가</div>
+        <div style="display:flex;gap:8px;margin-bottom:8px">
+          <input id="emg-name" class="fi" placeholder="이름" style="flex:1">
+          <input id="emg-phone" class="fi" placeholder="010-0000-0000" type="tel" style="flex:1.5">
+        </div>
+        <button onclick="addEmergencyContact()" style="width:100%;height:40px;background:var(--pr);color:#fff;border-radius:10px;font-size:13px;font-weight:700;border:none;cursor:pointer">추가</button>
+      </div>
+    </div>
   </div>`;
+}
+
+function addEmergencyContact(){
+  const name=document.getElementById('emg-name')?.value.trim();
+  const phone=document.getElementById('emg-phone')?.value.trim();
+  if(!name||!phone){toast('이름과 전화번호를 입력해주세요');return;}
+  const cfg=LS.cfg();
+  cfg.emergencyContacts=cfg.emergencyContacts||[];
+  cfg.emergencyContacts.push({name,phone,id:uid()});
+  LS.saveCfg(cfg);
+  document.getElementById('emg-name').value='';
+  document.getElementById('emg-phone').value='';
+  renderMypage();
+  toast('비상 연락처 추가됨');
+}
+
+function removeEmergencyContact(id){
+  const cfg=LS.cfg();
+  cfg.emergencyContacts=(cfg.emergencyContacts||[]).filter(c=>c.id!==id);
+  LS.saveCfg(cfg);
+  renderMypage();
 }
 
 function openVModal(){
@@ -1626,8 +1795,13 @@ function initParkingForm(){
   }
 
   // Floor chips
-  const fc=document.getElementById('floor-chips');
-  fc.innerHTML=FLOORS.map(f=>`<button class="ch" onclick="selectFloor('${f}')">${f}</button>`).join('');
+  selFloorType='ground';
+  document.getElementById('fl-ground').className='fl-type-btn fl-type-on';
+  document.getElementById('fl-under').className='fl-type-btn';
+  document.getElementById('zone-ko').value='';
+  document.getElementById('zone-en').value='';
+  document.getElementById('zone-num').value='';
+  renderFloorBtns();
 
   // Purpose (business mode only)
   const purSec=document.getElementById('parking-purpose-section');
@@ -1655,11 +1829,27 @@ function selectPurpose(v){
   });
 }
 
+let selFloorType='ground'; // 'ground' | 'under'
+
+function setFloorType(t){
+  selFloorType=t;selFloor=null;
+  document.getElementById('fl-ground').className='fl-type-btn'+(t==='ground'?' fl-type-on':'');
+  document.getElementById('fl-under').className='fl-type-btn'+(t==='under'?' fl-type-on':'');
+  renderFloorBtns();
+}
+
+function renderFloorBtns(){
+  const floors=selFloorType==='ground'
+    ?['1F','2F','3F','4F','5F','6F','7F','옥상']
+    :['B1','B2','B3','B4','B5'];
+  const fc=document.getElementById('floor-chips');
+  if(!fc)return;
+  fc.innerHTML=floors.map(f=>`<button class="ch${selFloor===f?' on':''}" onclick="selectFloor('${f}')">${f}</button>`).join('');
+}
+
 function selectFloor(f){
   selFloor=selFloor===f?null:f;
-  document.querySelectorAll('#floor-chips .ch').forEach(b=>{
-    b.classList.toggle('on',b.textContent===selFloor);
-  });
+  renderFloorBtns();
 }
 
 function saveParking(){
@@ -1674,7 +1864,7 @@ function saveParking(){
   const rec={
     id:uid(),vehicleId:sel.id,ts:new Date().toISOString(),
     lat:parkingLat,lng:parkingLng,addr:parkingAddr,
-    floor:selFloor,zone:document.getElementById('zone-input').value.trim()||null,
+    floor:selFloor,zone:(()=>{const zoneKo=document.getElementById('zone-ko').value;const zoneEn=document.getElementById('zone-en').value;const zoneNum=document.getElementById('zone-num').value;const zoneManual=document.getElementById('zone-input').value.trim();return[zoneKo,zoneEn,zoneNum,zoneManual].filter(Boolean).join('-')||null;})()
     memo:document.getElementById('parking-memo').value.trim()||null,
     purpose:LS.mode()==='business'?selPurpose:null,
     ocrText:parkingOcrText||null,
@@ -1939,6 +2129,81 @@ function initAccidentForm(){
     if(lat){accAddr=await reverseGeocode(lat,lng);}
     renderLocRow('acc-loc',lat,accAddr,false);
   });
+}
+
+const INS_CONTACTS=[
+  {n:'삼성화재',p:'1588-5114'},{n:'현대해상',p:'1588-5656'},{n:'KB손보',p:'1588-0588'},
+  {n:'메리츠화재',p:'1566-7711'},{n:'DB손보',p:'1588-0100'},{n:'한화손보',p:'1566-8000'},
+  {n:'롯데손보',p:'1588-3344'},{n:'흥국화재',p:'1588-2288'},
+];
+
+function renderAccidentView(){
+  const sel=getSelectedVehicle();
+  // 등록 보험 정보
+  const insCard=document.getElementById('acc-insurance-card');
+  if(insCard){
+    if(sel?.insCo||sel?.insExp){
+      const expired=sel.insExp&&new Date(sel.insExp)<new Date();
+      insCard.innerHTML=`
+        <div style="background:#EAF4FF;border:1px solid rgba(0,122,255,.2);border-radius:14px;padding:14px 16px;margin-bottom:12px">
+          <div style="font-size:11px;font-weight:700;color:#007AFF;letter-spacing:.05em;text-transform:uppercase;margin-bottom:8px">등록 보험 정보</div>
+          ${sel.insCo?`<div style="display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:15px;font-weight:700;color:#111">${sel.insCo}</span>
+            ${INS_CONTACTS.find(i=>i.n.includes(sel.insCo.slice(0,2)))?`
+              <a href="tel:${INS_CONTACTS.find(i=>i.n.includes(sel.insCo.slice(0,2))).p.replace(/-/g,'')}"
+                style="background:#007AFF;color:#fff;border-radius:20px;padding:6px 16px;font-size:13px;font-weight:700;text-decoration:none">전화</a>
+            `:''}
+          </div>`:''}
+          ${sel.insExp?`<div style="font-size:12px;color:${expired?'#FF3B30':'#666'};margin-top:4px">만료: ${sel.insExp}${expired?' ⚠ 만료됨':''}</div>`:''}
+        </div>`;
+    } else {
+      insCard.innerHTML=`<div style="background:#f8f8f8;border-radius:14px;padding:12px 16px;margin-bottom:12px;font-size:13px;color:#999">차량 설정에서 보험사를 등록하면 여기에 표시됩니다.</div>`;
+    }
+  }
+  // 비상 연락처
+  const emgEl=document.getElementById('acc-emergency-contacts');
+  const cfg=LS.cfg();
+  const emgContacts=cfg.emergencyContacts||[];
+  if(emgEl){
+    if(emgContacts.length){
+      emgEl.innerHTML=`
+        <div style="margin-bottom:12px">
+          <div style="font-size:11px;font-weight:700;color:#aaa;letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px">비상 연락처</div>
+          <div style="background:#fff;border:0.5px solid #efefef;border-radius:14px;overflow:hidden">
+            ${emgContacts.map(ec=>`
+              <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:0.5px solid #f5f5f5">
+                <div style="flex:1">
+                  <div style="font-size:14px;font-weight:600;color:#111">${ec.name}</div>
+                  <div style="font-size:12px;color:#888">${ec.phone}</div>
+                </div>
+                <a href="sms:${ec.phone.replace(/-/g,'')}" style="background:#f0f0f0;color:#333;border-radius:8px;padding:5px 12px;font-size:12px;font-weight:600;text-decoration:none;margin-right:6px">문자</a>
+                <a href="tel:${ec.phone.replace(/-/g,'')}" style="background:#007AFF;color:#fff;border-radius:8px;padding:5px 12px;font-size:12px;font-weight:700;text-decoration:none">전화</a>
+              </div>
+            `).join('')}
+          </div>
+        </div>`;
+    } else {
+      emgEl.innerHTML='';
+    }
+  }
+  // 보험사 목록
+  const insList=document.getElementById('acc-ins-list');
+  if(insList){
+    insList.innerHTML=INS_CONTACTS.map(ins=>`
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:13px 16px;border-bottom:0.5px solid #f8f8f8">
+        <span style="font-size:14px;font-weight:600;color:#111">${ins.n}</span>
+        <a href="tel:${ins.p.replace(/-/g,'')}" style="display:flex;align-items:center;gap:6px;color:#007AFF;font-size:13px;font-weight:700;text-decoration:none">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="15" height="15"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.41 2 2 0 0 1 3.6 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.6a16 16 0 0 0 5.55 5.55l.96-.96a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21 16.92z"/></svg>
+          ${ins.p}
+        </a>
+      </div>
+    `).join('');
+  }
+}
+
+function callAccContact(){
+  const p=document.getElementById('acc-contact')?.value.replace(/-/g,'').replace(/\s/g,'');
+  if(p)window.location.href='tel:'+p;
 }
 
 function saveAccident(){
