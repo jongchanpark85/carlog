@@ -301,12 +301,12 @@ select.fi{-webkit-appearance:none;appearance:none;background-image:url("data:ima
 }
 /* ── Warning lights ──────────────────────────────── */
 .wl-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:4px}
-.wl-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:14px 8px;background:var(--sf);border:1.5px solid var(--bd2);border-radius:12px;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent;min-height:80px;transition:border-color .15s,background .15s}
+.wl-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:14px 6px;background:var(--sf);border:1.5px solid var(--bd2);border-radius:12px;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent;min-height:88px;transition:border-color .15s,background .15s}
 .wl-btn.on{background:var(--pr-s)}
-.wl-icon{font-size:24px;line-height:1}
+.wl-svg{width:34px;height:34px;flex-shrink:0}
 .wl-name{font-size:11px;font-weight:600;color:var(--tx);text-align:center;line-height:1.2}
 .wl-desc{margin-top:12px;background:var(--bg);border-radius:10px;padding:12px 14px}
-.wl-desc-hd{font-size:14px;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.wl-desc-hd{font-size:14px;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:8px}
 .wl-desc-body{font-size:13px;color:var(--tx2);line-height:1.6}
 /* ── Maintenance widget (home) ───────────────────── */
 .mw-card{margin:0 20px;background:var(--card);border:1px solid var(--bd);border-radius:18px;overflow:hidden}
@@ -763,7 +763,18 @@ select.fi{-webkit-appearance:none;appearance:none;background-image:url("data:ima
     <div class="frow">
       <div class="fg">
         <label>보험사</label>
-        <input id="v-ins-co" class="fi" placeholder="삼성화재 등">
+        <select id="v-ins-co" class="fi">
+          <option value="">선택</option>
+          <option>삼성화재</option>
+          <option>현대해상</option>
+          <option>KB손보</option>
+          <option>메리츠화재</option>
+          <option>DB손보</option>
+          <option>한화손보</option>
+          <option>롯데손보</option>
+          <option>흥국화재</option>
+          <option>기타</option>
+        </select>
       </div>
       <div class="fg">
         <label>보험 만료일</label>
@@ -1148,26 +1159,62 @@ const MAINT_TYPES = ['엔진오일 교체','타이어 교체','타이어 로테�
   '에어필터 교체','브레이크 패드 교체','냉각수 교체','자동차 검사','기타 정비'];
 const STATUS_CATS = ['상태이상','경고등 점등','기타'];
 
-// 자동차 경고등 라이브러리
+// 자동차 경고등 라이브러리 — ISO 2575 표준 픽토그램 SVG path
 const WARNING_LIGHTS = [
-  {id:'engine',  name:'엔진 경고등',     icon:'⚙️',  color:'#FFA500',sev:'high',  desc:'엔진 시스템에 문제가 감지됐어요. 가능한 빨리 정비소 점검을 받으세요.'},
-  {id:'oil',     name:'엔진 오일',       icon:'🛢️',  color:'#DC2626',sev:'critical',desc:'오일 압력이 낮습니다. 즉시 차를 세우고 시동을 끄세요. 오일 부족 시 엔진 손상 위험.'},
-  {id:'battery', name:'배터리',          icon:'🔋',  color:'#DC2626',sev:'critical',desc:'배터리 충전 시스템 이상. 발전기(알터네이터) 문제일 수 있어요. 곧 시동이 꺼질 수 있음.'},
-  {id:'coolant', name:'엔진 과열',       icon:'🌡️',  color:'#DC2626',sev:'critical',desc:'냉각수 온도가 너무 높아요. 즉시 안전한 곳에 정차하고 엔진을 식히세요.'},
-  {id:'brake',   name:'브레이크',        icon:'🅿',  color:'#DC2626',sev:'critical',desc:'주차 브레이크가 걸려 있거나 브레이크액 부족. 풋브레이크 작동 점검 필요.'},
-  {id:'abs',     name:'ABS',            icon:'🛑',  color:'#FFA500',sev:'high',  desc:'잠김 방지 브레이크 시스템 이상. 일반 브레이크는 작동하지만 급제동 시 위험.'},
-  {id:'airbag',  name:'에어백',          icon:'💢',  color:'#FFA500',sev:'high',  desc:'에어백 시스템 이상. 사고 시 에어백이 작동하지 않을 수 있어요.'},
-  {id:'tpms',    name:'타이어 공기압',    icon:'⚠',  color:'#FFA500',sev:'mid',   desc:'타이어 공기압이 부족하거나 새고 있어요. 가까운 정비소에서 점검하세요.'},
-  {id:'seatbelt',name:'안전벨트',        icon:'🔔',  color:'#DC2626',sev:'mid',   desc:'안전벨트를 매주세요.'},
-  {id:'door',    name:'도어 열림',       icon:'🚪',  color:'#FFA500',sev:'low',   desc:'문이 완전히 닫히지 않았어요.'},
-  {id:'fuel',    name:'연료 부족',       icon:'⛽',  color:'#FFA500',sev:'mid',   desc:'연료가 곧 떨어집니다. 가까운 주유소로 가세요.'},
-  {id:'washer',  name:'워셔액 부족',     icon:'💧',  color:'#FFA500',sev:'low',   desc:'와이퍼 워셔액을 보충하세요.'},
-  {id:'esp',     name:'ESP/VDC',        icon:'🌀',  color:'#FFA500',sev:'mid',   desc:'차량 자세제어 장치(ESP/VDC) 작동 중이거나 이상. 미끄러운 노면 주의.'},
-  {id:'glow',    name:'예열 플러그',     icon:'🔥',  color:'#FFA500',sev:'mid',   desc:'(디젤) 예열 플러그 동작 중입니다. 사라진 후 시동을 거세요.'},
-  {id:'dpf',     name:'매연 필터',       icon:'☁',  color:'#FFA500',sev:'mid',   desc:'(디젤) DPF 재생이 필요해요. 일정 속도로 30분 이상 주행하세요.'},
-  {id:'light',   name:'전조등',          icon:'💡',  color:'#FFA500',sev:'low',   desc:'전조등 또는 미등 전구 이상. 점검하세요.'},
-  {id:'steer',   name:'조향(EPS)',      icon:'🔄',  color:'#FFA500',sev:'high',  desc:'전동 파워 스티어링 이상. 조향이 무거워질 수 있어요.'},
-  {id:'service', name:'정기 점검',       icon:'🔧',  color:'#16A34A',sev:'low',   desc:'정기 점검 시점이 다가왔어요. 정비소를 방문하세요.'},
+  {id:'engine',  name:'엔진 경고등',  color:'#FFA500',sev:'high',
+   svg:'<path d="M30 40h28v8h12v-4h6v32h-6v-4H58v8H30c-3 0-6-2-6-6v-4h-8v-16h8v-4c0-6 3-10 6-10z" fill="currentColor"/><circle cx="36" cy="56" r="2.5" fill="#fff"/><circle cx="48" cy="56" r="2.5" fill="#fff"/>',
+   desc:'엔진 시스템에 문제가 감지됐어요. 가능한 빨리 정비소 점검을 받으세요.'},
+  {id:'oil',     name:'엔진 오일',    color:'#DC2626',sev:'critical',
+   svg:'<path d="M14 64c8 0 8-10 16-10s8 10 16 10 8-10 16-10 8 10 14 10v6H14z" fill="currentColor"/><path d="M50 18c-10 0-14 8-14 14 0 8 4 12 14 22 10-10 14-14 14-22 0-6-4-14-14-14z" fill="currentColor"/><path d="M50 22c-7 0-10 6-10 10s3 9 10 16c7-7 10-13 10-16s-3-10-10-10z" fill="#fff"/>',
+   desc:'오일 압력이 낮아요. 즉시 차를 세우고 시동을 끄세요. 엔진 손상 위험!'},
+  {id:'battery', name:'배터리',       color:'#DC2626',sev:'critical',
+   svg:'<rect x="14" y="26" width="68" height="48" rx="3" fill="currentColor"/><rect x="22" y="20" width="14" height="8" fill="currentColor"/><rect x="60" y="20" width="14" height="8" fill="currentColor"/><text x="28" y="58" font-size="22" font-weight="900" fill="#fff" font-family="Arial">+</text><rect x="58" y="48" width="14" height="3" fill="#fff"/>',
+   desc:'배터리 충전 시스템 이상. 발전기(알터네이터) 문제일 수 있어요.'},
+  {id:'coolant', name:'엔진 과열',    color:'#DC2626',sev:'critical',
+   svg:'<path d="M48 12c-4 0-7 3-7 7v36c-3 2-5 5-5 9 0 7 5 12 12 12s12-5 12-12c0-4-2-7-5-9V19c0-4-3-7-7-7z" fill="currentColor"/><circle cx="48" cy="64" r="6" fill="#fff"/><path d="M70 30l8 4M70 42l8 0M70 54l8-4M14 50l16-8M14 50l16 8" stroke="currentColor" stroke-width="4" stroke-linecap="round" fill="none"/>',
+   desc:'냉각수 온도가 너무 높아요. 즉시 안전한 곳에 정차하고 엔진을 식히세요.'},
+  {id:'brake',   name:'브레이크',     color:'#DC2626',sev:'critical',
+   svg:'<circle cx="48" cy="48" r="32" fill="none" stroke="currentColor" stroke-width="5"/><text x="48" y="60" font-size="34" font-weight="900" text-anchor="middle" fill="currentColor" font-family="Arial">!</text><path d="M16 34l-6 6M80 34l6 6M16 62l-6-6M80 62l6-6" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>',
+   desc:'주차 브레이크가 걸려 있거나 브레이크액 부족. 풋브레이크 점검 필요.'},
+  {id:'abs',     name:'ABS',         color:'#FFA500',sev:'high',
+   svg:'<circle cx="48" cy="48" r="32" fill="none" stroke="currentColor" stroke-width="5"/><text x="48" y="58" font-size="20" font-weight="900" text-anchor="middle" fill="currentColor" font-family="Arial">ABS</text><path d="M16 34l-6 6M80 34l6 6M16 62l-6-6M80 62l6-6" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>',
+   desc:'잠김 방지 브레이크 시스템 이상. 일반 브레이크는 작동하지만 급제동 시 위험.'},
+  {id:'airbag',  name:'에어백',       color:'#FFA500',sev:'high',
+   svg:'<circle cx="36" cy="44" r="10" fill="currentColor"/><path d="M36 54c-8 0-14 6-14 14v8h28v-8c0-8-6-14-14-14z" fill="currentColor"/><circle cx="62" cy="56" r="14" fill="currentColor"/><circle cx="62" cy="56" r="9" fill="#fff"/>',
+   desc:'에어백 시스템 이상. 사고 시 에어백이 작동하지 않을 수 있어요.'},
+  {id:'tpms',    name:'타이어 공기압',color:'#FFA500',sev:'mid',
+   svg:'<path d="M16 28h64c4 0 6 4 6 8v24c0 4-2 8-6 8H16c-4 0-6-4-6-8V36c0-4 2-8 6-8z" fill="currentColor"/><text x="48" y="56" font-size="22" font-weight="900" text-anchor="middle" fill="#fff" font-family="Arial">!</text><path d="M28 68l-6 6M68 68l6 6" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>',
+   desc:'타이어 공기압이 부족하거나 새고 있어요. 가까운 정비소에서 점검하세요.'},
+  {id:'seatbelt',name:'안전벨트',     color:'#DC2626',sev:'mid',
+   svg:'<circle cx="38" cy="22" r="8" fill="currentColor"/><path d="M30 36h16l8 18-4 28H26l-4-28z" fill="currentColor"/><path d="M58 36L36 84" stroke="#fff" stroke-width="6"/>',
+   desc:'안전벨트를 매주세요.'},
+  {id:'door',    name:'도어 열림',    color:'#FFA500',sev:'low',
+   svg:'<rect x="18" y="36" width="20" height="40" rx="2" fill="currentColor"/><rect x="58" y="20" width="20" height="56" rx="2" fill="currentColor" transform="rotate(-30 68 48)"/><rect x="42" y="44" width="12" height="36" fill="currentColor"/>',
+   desc:'문이 완전히 닫히지 않았어요.'},
+  {id:'fuel',    name:'연료 부족',    color:'#FFA500',sev:'mid',
+   svg:'<path d="M22 18h32v60h12c2 0 4-2 4-4V46l-8-8 4-4 12 12v34c0 4-4 8-8 8H22z" fill="currentColor"/><rect x="28" y="26" width="20" height="20" fill="#fff"/>',
+   desc:'연료가 곧 떨어집니다. 가까운 주유소로 가세요.'},
+  {id:'washer',  name:'워셔액 부족',  color:'#FFA500',sev:'low',
+   svg:'<path d="M14 50c8-8 26-12 34-12s26 4 34 12v8H14z" fill="currentColor"/><path d="M30 64l-8 16M48 64l-4 16M66 64l8 16" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-dasharray="4 4"/>',
+   desc:'와이퍼 워셔액을 보충하세요.'},
+  {id:'esp',     name:'ESP/VDC',     color:'#FFA500',sev:'mid',
+   svg:'<path d="M24 36c8-8 16-12 24-12s16 4 24 12l-6 6c-6-6-12-8-18-8s-12 2-18 8z" fill="currentColor"/><path d="M14 70l8-4 0 8 6 0-4-8 8-4-8-4 4-8-6 0 0 8z" fill="currentColor"/><circle cx="68" cy="64" r="4" fill="currentColor"/><circle cx="78" cy="58" r="3" fill="currentColor"/>',
+   desc:'차량 자세제어 장치(ESP/VDC) 작동 중이거나 이상. 미끄러운 노면 주의.'},
+  {id:'glow',    name:'예열 플러그',  color:'#FFA500',sev:'mid',
+   svg:'<path d="M30 20c0 12 12 12 12 24s-12 12-12 24M50 20c0 12 12 12 12 24s-12 12-12 24" fill="none" stroke="currentColor" stroke-width="8" stroke-linecap="round"/>',
+   desc:'(디젤) 예열 플러그 동작 중입니다. 사라진 후 시동을 거세요.'},
+  {id:'dpf',     name:'매연 필터',    color:'#FFA500',sev:'mid',
+   svg:'<rect x="14" y="36" width="68" height="36" rx="4" fill="currentColor"/><circle cx="26" cy="54" r="3" fill="#fff"/><circle cx="38" cy="54" r="3" fill="#fff"/><circle cx="50" cy="54" r="3" fill="#fff"/><circle cx="62" cy="54" r="3" fill="#fff"/><circle cx="74" cy="54" r="3" fill="#fff"/><path d="M20 28c2-4 6-6 10-4M40 28c2-4 6-6 10-4M60 28c2-4 6-6 10-4" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round"/>',
+   desc:'(디젤) DPF 재생이 필요해요. 일정 속도로 30분 이상 주행하세요.'},
+  {id:'light',   name:'전조등',       color:'#FFA500',sev:'low',
+   svg:'<path d="M16 36c0-8 6-14 14-14h12c10 0 18 8 18 18v8c0 10-8 18-18 18H30c-8 0-14-6-14-14z" fill="currentColor"/><path d="M64 38l16-4M64 48l18 0M64 58l16 4" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>',
+   desc:'전조등 또는 미등 전구 이상. 점검하세요.'},
+  {id:'steer',   name:'조향 (EPS)',  color:'#FFA500',sev:'high',
+   svg:'<circle cx="48" cy="48" r="28" fill="none" stroke="currentColor" stroke-width="6"/><circle cx="48" cy="48" r="6" fill="currentColor"/><path d="M48 22v22M22 48h22M74 48H54M48 74V58" stroke="currentColor" stroke-width="6" stroke-linecap="round"/><text x="74" y="32" font-size="22" font-weight="900" fill="currentColor" font-family="Arial">!</text>',
+   desc:'전동 파워 스티어링 이상. 조향이 무거워질 수 있어요.'},
+  {id:'service', name:'정기 점검',    color:'#16A34A',sev:'low',
+   svg:'<path d="M62 14L48 28l8 8 14-14c4 4 4 12-2 18l16 16-8 8-16-16c-6 6-14 6-18 2l14-14-8-8L34 42c-8-8-8-22 2-30s22-8 30-2z" fill="currentColor"/>',
+   desc:'정기 점검 시점이 다가왔어요. 정비소를 방문하세요.'},
 ];
 
 // 소모품 표준 교환 주기 (km)
@@ -1675,7 +1722,7 @@ function renderHome(){
     <div>
       <p class="hs-greeting">${greet}</p>
       <h2 class="hs-car-name">${sel.name}</h2>
-      <p class="hs-car-sub">${sel.plate}${sel.make?' · '+sel.make:''} ${sel.model||''} · ${fmtMileage(sel.mileage||0)}</p>
+      <p class="hs-car-sub">${sel.plate}${sel.make?' · '+sel.make:''} ${sel.model||''} · ${fmtMileage(getCurrentMileage(sel))}</p>
     </div>
     ${vs.length>1?`<button class="hs-switch" onclick="openVModal()">바꾸기</button>`:''}
   </div>`;
@@ -1709,10 +1756,6 @@ function renderHome(){
     }
   </div>`;
 
-  // ── 소모품 교환시기 위젯
-  const maintWidget=buildMaintWidget(sel);
-  if(maintWidget)html+=`<p class="ql-sec">소모품 교환 시기</p>${maintWidget}`;
-
   // ── 리스트: 정비/계기판/차량상태/사고
   html+=`<p class="ql-sec">빠른 메뉴</p>
   <div class="ql-card">
@@ -1731,7 +1774,7 @@ function renderHome(){
       </div>
       <div class="ql-body">
         <div class="ql-title">계기판 촬영</div>
-        <div class="ql-sub">주행거리 자동 인식 · 현재 ${fmtMileage(sel.mileage||0)}</div>
+        <div class="ql-sub">주행거리 자동 인식 · 현재 ${fmtMileage(getCurrentMileage(sel))}</div>
       </div>${chevSvg}
     </div>
     <div class="ql-row" onclick="go('status-list');renderStatusList()">
@@ -1753,7 +1796,11 @@ function renderHome(){
       </div>${chevSvg}
     </div>
   </div>
-  <div style="height:24px"></div>`;
+  <div style="height:18px"></div>`;
+
+  // ── 소모품 교환시기 위젯 (빠른메뉴 아래)
+  const maintWidget=buildMaintWidget(sel);
+  if(maintWidget)html+=`<p class="ql-sec">소모품 교환 시기</p>${maintWidget}<div style="height:24px"></div>`;
 
   c.innerHTML=html;
   if(active)_startParkTimer(active.ts);else _clearParkTimer();
@@ -1789,9 +1836,9 @@ function renderRecords(){
       <div style="background:#f8f8f8;border-radius:16px;overflow:hidden;margin-bottom:20px">
         ${[
           {icon:'🅿',bg:'#EAF2FF',label:'주차 기록',sub:'위치 · 층수 · 구역',cnt:pCount,fn:`go('parking-history');renderParkingHistory()`},
+          {icon:'📷',bg:'#F3E8FF',label:'차량 상태',sub:'상태이상 · 경고등 · 기타',cnt:sCount,fn:`go('status-list');renderStatusList()`},
           {icon:'🔧',bg:'#FFF3E0',label:'정비 기록',sub:'오일 · 타이어 · 검사',cnt:mCount,fn:`go('maintenance');renderMaintenanceList()`},
           {icon:'⚠️',bg:'#FFEBEE',label:'사고 기록',sub:'사진 · 위치 · 상대방',cnt:aCount,fn:`go('accident');renderAccidentView()`},
-          {icon:'📷',bg:'#F3E8FF',label:'차량 상태',sub:'긁힘 · 경고등 · 메모',cnt:sCount,fn:`go('status-list');renderStatusList()`},
         ].map(row=>`
           <div onclick="${row.fn}" style="display:flex;align-items:center;gap:14px;padding:14px 16px;border-bottom:0.5px solid #efefef;cursor:pointer;background:#fff;-webkit-tap-highlight-color:transparent" ontouchstart="this.style.background='#f8f9fa'" ontouchend="this.style.background='#fff'">
             <div style="width:36px;height:36px;border-radius:10px;background:${row.bg};display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0">${row.icon}</div>
@@ -2341,13 +2388,15 @@ function renderAccidentView(){
   // ── 내 보험사 ──
   const insCard=document.getElementById('acc-insurance-card');
   if(insCard){
-    if(sel?.insCo){
-      const matched=INS_CONTACTS.find(i=>i.n.includes(sel.insCo.slice(0,2)));
-      const expired=sel.insExp&&new Date(sel.insExp)<new Date();
+    const insName=sel?.insuranceCo||sel?.insCo;
+    const insExpD=sel?.insuranceExp||sel?.insExp;
+    if(insName){
+      const matched=INS_CONTACTS.find(i=>i.n===insName||i.n.includes(insName.slice(0,2)));
+      const expired=insExpD&&new Date(insExpD)<new Date();
       insCard.innerHTML=`
         <div class="acc-my-ins">
-          <div class="acc-my-ins-co">${sel.insCo}</div>
-          ${sel.insExp?`<div class="acc-my-ins-exp${expired?' expired':''}">보험 만료일 ${sel.insExp}${expired?' · 만료됨':''}</div>`:''}
+          <div class="acc-my-ins-co">${insName}</div>
+          ${insExpD?`<div class="acc-my-ins-exp${expired?' expired':''}">보험 만료일 ${insExpD}${expired?' · 만료됨':''}</div>`:''}
           ${matched?`<a class="acc-my-ins-call" href="tel:${matched.p.replace(/-/g,'')}">${phoneSvg}${matched.p}</a>`:''}
         </div>`;
     } else {
@@ -2439,7 +2488,10 @@ function selectStatusCat(cat){
 function renderStatusFormBody(){
   const body=document.getElementById('status-form-body');
   if(!body)return;
-  let html='';
+  const sel=getSelectedVehicle();
+  const curKm=getCurrentMileage(sel);
+  let html=`<p class="sec" style="margin-top:16px">현재 주행거리 (km)</p>
+    <input id="status-mileage" type="number" class="fi" placeholder="${curKm?curKm.toLocaleString():'예: 52000'}" inputmode="numeric" value="${curKm||''}">`;
 
   if(selStatusCat==='경고등 점등'){
     html+=`<p class="sec" style="margin-top:16px">사진 <span style="font-weight:400;font-size:13px;color:var(--txm)">(AI 인식 가능)</span></p>
@@ -2448,13 +2500,16 @@ function renderStatusFormBody(){
       <p class="sec" style="margin-top:16px">경고등 선택</p>
       <div class="wl-grid">${WARNING_LIGHTS.map(w=>`
         <button class="wl-btn${selWarningId===w.id?' on':''}" onclick="selectWarning('${w.id}')" style="border-color:${selWarningId===w.id?w.color:'var(--bd2)'}">
-          <span class="wl-icon" style="color:${w.color}">${w.icon}</span>
+          <svg class="wl-svg" viewBox="0 0 96 96" style="color:${w.color}">${w.svg}</svg>
           <span class="wl-name">${w.name}</span>
         </button>
       `).join('')}</div>
       ${selWarningId?(()=>{const w=WARNING_LIGHTS.find(x=>x.id===selWarningId);return `
         <div class="wl-desc" style="border-left:4px solid ${w.color}">
-          <div class="wl-desc-hd" style="color:${w.color}">${w.icon} ${w.name}</div>
+          <div class="wl-desc-hd" style="color:${w.color}">
+            <svg viewBox="0 0 96 96" style="width:24px;height:24px;color:${w.color}">${w.svg}</svg>
+            ${w.name}
+          </div>
           <div class="wl-desc-body">${w.desc}</div>
         </div>`;})():''}
       <p class="sec" style="margin-top:16px">추가 메모 <span style="font-weight:400;font-size:13px;color:var(--txm)">(선택)</span></p>
@@ -2540,13 +2595,22 @@ function saveStatus(){
   const sel=getSelectedVehicle();
   if(!sel){toast('차량을 먼저 등록해주세요');return;}
   const descEl=document.getElementById('status-desc');
+  const kmEl=document.getElementById('status-mileage');
+  const km=kmEl?parseInt(kmEl.value)||null:null;
   const rec={
     id:uid(),vehicleId:sel.id,category:selStatusCat,
     description:descEl?.value.trim()||null,
     warningId:selStatusCat==='경고등 점등'?selWarningId:null,
+    mileage:km,
     photos:statusPhotos,ts:new Date().toISOString(),createdAt:new Date().toISOString()
   };
   const ss=LS.status();ss.unshift(rec);LS.saveStatus(ss);
+  // 차량 mileage 자동 갱신 (입력 km이 더 크면)
+  if(km&&km>(sel.mileage||0)){
+    const vs=LS.vehicles();
+    const idx=vs.findIndex(v=>v.id===sel.id);
+    if(idx>=0){vs[idx].mileage=km;LS.saveVehicles(vs);}
+  }
   toast('상태 기록이 저장됐어요');
   navTo('home');
 }
@@ -2557,6 +2621,15 @@ function saveStatus(){
 function getMaintIntervals(){
   const userIntervals=LS.cfg().maintIntervals||{};
   return {...MAINT_STANDARD,...userIntervals};
+}
+
+// 차량의 실제 현재 주행거리 — vehicle.mileage / 정비기록 / 상태기록 중 가장 큰 값
+function getCurrentMileage(sel){
+  if(!sel)return 0;
+  let max=sel.mileage||0;
+  LS.maintenance().filter(m=>m.vehicleId===sel.id).forEach(m=>{if((m.mileage||0)>max)max=m.mileage;});
+  LS.status().filter(s=>s.vehicleId===sel.id).forEach(s=>{if((s.mileage||0)>max)max=s.mileage;});
+  return max;
 }
 
 function openMaintIntervalsSheet(){
@@ -2603,7 +2676,7 @@ function resetMaintIntervals(){
 
 function buildMaintWidget(sel){
   if(!sel)return '';
-  const curKm=sel.mileage||0;
+  const curKm=getCurrentMileage(sel);
   const intervals=getMaintIntervals();
   const allMaint=LS.maintenance().filter(m=>m.vehicleId===sel.id);
 
