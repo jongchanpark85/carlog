@@ -1633,6 +1633,15 @@ function renderHome(){
         <div class="ql-sub">${lastStatus?lastStatus.category+' · '+fmtRelative(lastStatus.ts):'기록 없음'}</div>
       </div>${chevSvg}
     </div>
+    <div class="ql-row" onclick="go('accident');renderAccidentView()">
+      <div class="ql-icon" style="background:#FFEBEE">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#FF3B30" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      </div>
+      <div class="ql-body">
+        <div class="ql-title" style="color:#FF3B30">사고 대응</div>
+        <div class="ql-sub">사진 · 위치 · 보험사 연결</div>
+      </div>${chevSvg}
+    </div>
   </div>
   <div style="height:24px"></div>`;
 
