@@ -300,7 +300,11 @@ select.fi{-webkit-appearance:none;appearance:none;background-image:url("data:ima
   -webkit-appearance:none;text-align:center;
 }
 /* ── Warning lights ──────────────────────────────── */
-.wl-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:4px}
+.wl-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:4px;margin-bottom:14px}
+.wl-group-hd{display:flex;flex-direction:column;gap:2px;margin-top:14px;padding:8px 12px;background:var(--bg);border-radius:8px}
+.wl-group-hd:first-child{margin-top:6px}
+.wl-group-label{font-size:13px;font-weight:700;color:var(--tx)}
+.wl-group-desc{font-size:11px;color:var(--txm);line-height:1.4}
 .wl-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:14px 6px;background:var(--sf);border:1.5px solid var(--bd2);border-radius:12px;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent;min-height:88px;transition:border-color .15s,background .15s}
 .wl-btn.on{background:var(--pr-s)}
 .wl-svg{width:34px;height:34px;flex-shrink:0}
@@ -1215,6 +1219,30 @@ const WARNING_LIGHTS = [
   {id:'service', name:'정기 점검',    color:'#16A34A',sev:'low',
    svg:'<path d="M62 14L48 28l8 8 14-14c4 4 4 12-2 18l16 16-8 8-16-16c-6 6-14 6-18 2l14-14-8-8L34 42c-8-8-8-22 2-30s22-8 30-2z" fill="currentColor"/>',
    desc:'정기 점검 시점이 다가왔어요. 정비소를 방문하세요.'},
+  {id:'transmission',name:'변속기',   color:'#DC2626',sev:'critical',
+   svg:'<rect x="20" y="34" width="56" height="28" rx="6" fill="currentColor"/><circle cx="32" cy="48" r="4" fill="#fff"/><circle cx="48" cy="48" r="4" fill="#fff"/><circle cx="64" cy="48" r="4" fill="#fff"/><path d="M14 20l8 8M82 20l-8 8M14 76l8-8M82 76l-8-8" stroke="currentColor" stroke-width="4" stroke-linecap="round"/><text x="48" y="80" font-size="18" font-weight="900" text-anchor="middle" fill="currentColor" font-family="Arial">!</text>',
+   desc:'변속기 시스템 이상 또는 오일 과열. 즉시 안전한 곳에 정차 후 정비소에 연락하세요.'},
+  {id:'adblue',  name:'요소수 (AdBlue)',color:'#FFA500',sev:'mid',
+   svg:'<path d="M30 22h36v18l8 24c2 6-2 12-8 12H30c-6 0-10-6-8-12l8-24z" fill="currentColor"/><text x="48" y="60" font-size="18" font-weight="900" text-anchor="middle" fill="#fff" font-family="Arial">DEF</text><path d="M20 30l-6-6M76 30l6-6" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>',
+   desc:'(디젤) 요소수(AdBlue) 부족. 곧 출력 제한이 걸릴 수 있어요. 가까운 정비소나 주유소에서 보충하세요.'},
+  {id:'lane',    name:'차선 이탈',     color:'#FFA500',sev:'mid',
+   svg:'<path d="M20 30l8 56M76 30l-8 56" stroke="currentColor" stroke-width="5" stroke-linecap="round"/><path d="M40 36h16l4 24-2 16H38l-2-16z" fill="currentColor"/><circle cx="40" cy="68" r="3" fill="#fff"/><circle cx="56" cy="68" r="3" fill="#fff"/><path d="M14 50l-4-4M82 50l4-4" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>',
+   desc:'차선 이탈 경고. 차선을 벗어나려고 합니다. 핸들을 바로잡아 주세요.'},
+  {id:'fog-front',name:'전방 안개등',  color:'#16A34A',sev:'low',
+   svg:'<path d="M14 36c0-8 6-14 14-14h10c10 0 18 8 18 18v6c0 10-8 18-18 18H28c-8 0-14-6-14-14z" fill="currentColor"/><path d="M62 28l20-2M62 40l22 0M62 52l20 2M62 64l16 4" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path d="M62 32q-4 0-6 2M62 44q-6 0-8 2M62 56q-4 0-6 2" stroke="currentColor" stroke-width="2.5" stroke-dasharray="3 3"/>',
+   desc:'전방 안개등이 켜져 있습니다.'},
+  {id:'fog-rear', name:'후방 안개등',  color:'#FFA500',sev:'mid',
+   svg:'<path d="M82 36c0-8-6-14-14-14H58c-10 0-18 8-18 18v6c0 10 8 18 18 18h10c8 0 14-6 14-14z" fill="currentColor"/><path d="M34 28l-20-2M34 40l-22 0M34 52l-20 2M34 64l-16 4" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path d="M34 32q4 0 6 2M34 44q6 0 8 2M34 56q4 0 6 2" stroke="currentColor" stroke-width="2.5" stroke-dasharray="3 3"/>',
+   desc:'후방 안개등이 켜져 있습니다. 뒤차에 눈부심을 줄 수 있어요. 안개가 옅으면 꺼주세요.'},
+  {id:'cruise',  name:'정속 주행',     color:'#16A34A',sev:'low',
+   svg:'<circle cx="48" cy="48" r="32" fill="none" stroke="currentColor" stroke-width="5"/><path d="M48 28v22l16 8" stroke="currentColor" stroke-width="5" stroke-linecap="round" fill="none"/><circle cx="48" cy="48" r="4" fill="currentColor"/>',
+   desc:'정속 주행(크루즈 컨트롤)이 활성화됐어요.'},
+  {id:'key',     name:'스마트 키',     color:'#FFA500',sev:'mid',
+   svg:'<path d="M40 20c-10 0-18 8-18 18s8 18 18 18c4 0 8-2 12-4l30 30 6-6-30-30c2-4 4-8 4-12 0-10-8-18-18-18z" fill="currentColor"/><circle cx="40" cy="38" r="6" fill="#fff"/><text x="74" y="84" font-size="18" font-weight="900" fill="currentColor" font-family="Arial">!</text>',
+   desc:'스마트 키 배터리가 부족하거나 키가 차량 안에 없을 수 있어요.'},
+  {id:'immo',    name:'도난 방지',     color:'#FFA500',sev:'mid',
+   svg:'<rect x="20" y="40" width="56" height="40" rx="4" fill="currentColor"/><path d="M30 40v-6c0-10 8-18 18-18s18 8 18 18v6" fill="none" stroke="currentColor" stroke-width="6"/><circle cx="48" cy="56" r="6" fill="#fff"/><rect x="46" y="58" width="4" height="10" fill="#fff"/>',
+   desc:'도난 방지 시스템(이모빌라이저)이 작동 중이거나 키 인증 실패. 시동이 걸리지 않을 수 있어요.'},
 ];
 
 // 소모품 표준 교환 주기 (km)
@@ -2498,12 +2526,24 @@ function renderStatusFormBody(){
       <div id="status-photos" class="pgrid"></div>
       <div id="warning-ocr-result" style="display:none;background:var(--pr-s);border-radius:10px;padding:10px 12px;margin-top:8px;font-size:13px;color:var(--pr);font-weight:600"></div>
       <p class="sec" style="margin-top:16px">경고등 선택</p>
-      <div class="wl-grid">${WARNING_LIGHTS.map(w=>`
-        <button class="wl-btn${selWarningId===w.id?' on':''}" onclick="selectWarning('${w.id}')" style="border-color:${selWarningId===w.id?w.color:'var(--bd2)'}">
-          <svg class="wl-svg" viewBox="0 0 96 96" style="color:${w.color}">${w.svg}</svg>
-          <span class="wl-name">${w.name}</span>
-        </button>
-      `).join('')}</div>
+      ${(()=>{
+        const groups=[
+          {key:'red',  label:'🔴 즉시 점검',          desc:'안전 운행이 어려워요. 즉시 정차하거나 정비소에 연락하세요.', filter:w=>w.sev==='critical'},
+          {key:'amber',label:'🟠 점검 필요',          desc:'가능한 빨리 정비소에서 점검 받으세요.',                       filter:w=>w.sev==='high'||w.sev==='mid'},
+          {key:'info', label:'🟢 안내·상태',          desc:'현재 차량 상태를 안내해요.',                                 filter:w=>w.sev==='low'},
+        ];
+        return groups.map(g=>{
+          const items=WARNING_LIGHTS.filter(g.filter);
+          if(!items.length)return '';
+          return `<div class="wl-group-hd"><span class="wl-group-label">${g.label}</span><span class="wl-group-desc">${g.desc}</span></div>
+          <div class="wl-grid">${items.map(w=>`
+            <button class="wl-btn${selWarningId===w.id?' on':''}" onclick="selectWarning('${w.id}')" style="border-color:${selWarningId===w.id?w.color:'var(--bd2)'}">
+              <svg class="wl-svg" viewBox="0 0 96 96" style="color:${w.color}">${w.svg}</svg>
+              <span class="wl-name">${w.name}</span>
+            </button>
+          `).join('')}</div>`;
+        }).join('');
+      })()}
       ${selWarningId?(()=>{const w=WARNING_LIGHTS.find(x=>x.id===selWarningId);return `
         <div class="wl-desc" style="border-left:4px solid ${w.color}">
           <div class="wl-desc-hd" style="color:${w.color}">
