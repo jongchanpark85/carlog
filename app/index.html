@@ -299,6 +299,25 @@ select.fi{-webkit-appearance:none;appearance:none;background-image:url("data:ima
   border-radius:10px;font-size:13px;color:var(--tx);font-family:inherit;outline:none;
   -webkit-appearance:none;text-align:center;
 }
+/* ── Warning lights ──────────────────────────────── */
+.wl-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:4px}
+.wl-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:14px 8px;background:var(--sf);border:1.5px solid var(--bd2);border-radius:12px;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent;min-height:80px;transition:border-color .15s,background .15s}
+.wl-btn.on{background:var(--pr-s)}
+.wl-icon{font-size:24px;line-height:1}
+.wl-name{font-size:11px;font-weight:600;color:var(--tx);text-align:center;line-height:1.2}
+.wl-desc{margin-top:12px;background:var(--bg);border-radius:10px;padding:12px 14px}
+.wl-desc-hd{font-size:14px;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.wl-desc-body{font-size:13px;color:var(--tx2);line-height:1.6}
+/* ── Maintenance widget (home) ───────────────────── */
+.mw-card{margin:0 20px;background:var(--card);border:1px solid var(--bd);border-radius:18px;overflow:hidden}
+.mw-row{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:0.5px solid var(--bd)}
+.mw-row:last-child{border-bottom:none}
+.mw-info{flex:1;min-width:0}
+.mw-name{font-size:13px;font-weight:600;color:var(--tx)}
+.mw-sub{font-size:11px;color:var(--txm);margin-top:1px}
+.mw-bar{width:64px;height:6px;background:var(--bd);border-radius:3px;overflow:hidden;flex-shrink:0}
+.mw-bar-fill{height:100%;border-radius:3px;transition:width .3s}
+.mw-status{font-size:11px;font-weight:700;flex-shrink:0;width:54px;text-align:right}
 /* ── Jcar logo ───────────────────────────────────── */
 .logo-wrap{display:flex;align-items:center;gap:9px}
 .logo-icon{width:32px;height:32px;flex-shrink:0;filter:drop-shadow(0 2px 6px rgba(26,60,110,.25))}
@@ -460,6 +479,18 @@ select.fi{-webkit-appearance:none;appearance:none;background-image:url("data:ima
   <div class="sheet">
     <div class="sheet-title">차량 선택</div>
     <div id="v-list"></div>
+  </div>
+</div>
+
+<!-- 소모품 교환 주기 설정 모달 -->
+<div id="mi-modal" style="position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;display:none;align-items:flex-end" onclick="if(event.target===this)closeMaintIntervalsSheet()">
+  <div class="sheet" style="max-height:85vh">
+    <div class="sheet-title">소모품 교환 주기 (km)</div>
+    <div id="mi-list"></div>
+    <div style="display:flex;gap:8px;margin-top:14px">
+      <button onclick="resetMaintIntervals()" style="flex:1;height:44px;background:var(--bd);color:var(--tx2);border-radius:10px;font-weight:700;font-size:14px;border:none;cursor:pointer">표준값으로 초기화</button>
+      <button onclick="saveMaintIntervals()" style="flex:2;height:44px;background:var(--pr);color:#fff;border-radius:10px;font-weight:700;font-size:14px;border:none;cursor:pointer">저장</button>
+    </div>
   </div>
 </div>
 
@@ -901,10 +932,7 @@ select.fi{-webkit-appearance:none;appearance:none;background-image:url("data:ima
     <div id="status-vehicle-info"></div>
     <p class="sec">상태 유형</p>
     <div id="status-chips" class="cg"></div>
-    <p class="sec">사진</p>
-    <div id="status-photos" class="pgrid"></div>
-    <p class="sec" style="margin-top:16px">상태 설명</p>
-    <textarea id="status-desc" class="fi" rows="4" placeholder="어디에 긁힘이 있는지, 어떤 경고등인지 등을 기록하세요"></textarea>
+    <div id="status-form-body"></div>
   </div>
 
   <!-- RENTAL LIST (business) -->
@@ -1049,6 +1077,25 @@ select.fi{-webkit-appearance:none;appearance:none;background-image:url("data:ima
     <div id="timeline-list"></div>
   </div>
 
+  <!-- ODOMETER (계기판 촬영) -->
+  <div id="v-odo" class="view">
+    <button class="back" onclick="navTo('home')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><path d="M15 18l-6-6 6-6"/></svg>
+      뒤로
+    </button>
+    <div class="ab"><h1>계기판 촬영</h1>
+      <button id="odo-save-btn" style="display:none;padding:0 14px;height:36px;border-radius:8px;background:var(--pr);color:#fff;font-weight:700;font-size:13px;border:none;cursor:pointer" onclick="saveOdometer()">주행거리 갱신</button>
+    </div>
+    <div id="odo-vehicle-info"></div>
+    <p class="sec">계기판 사진을 찍으면 AI가 주행거리를 자동 인식합니다</p>
+    <div id="odo-photos" class="pgrid"></div>
+    <div id="odo-result" style="display:none;background:var(--pr-s);border-radius:12px;padding:14px 16px;margin-top:12px"></div>
+    <div class="fg" style="margin-top:14px">
+      <label>주행거리 (km)</label>
+      <input id="odo-km" type="number" class="fi" placeholder="자동 인식 또는 직접 입력" inputmode="numeric">
+    </div>
+  </div>
+
   <!-- RECORDS (통합 기록 탭) -->
   <div id="v-records" class="view">
     <div class="ab"><h1>기록</h1></div>
@@ -1099,7 +1146,41 @@ select.fi{-webkit-appearance:none;appearance:none;background-image:url("data:ima
 const FLOORS = ['B4','B3','B2','B1','1F','2F','3F','4F','5F','6F','7F','8F','옥상'];
 const MAINT_TYPES = ['엔진오일 교체','타이어 교체','타이어 로테이션','배터리 교체',
   '에어필터 교체','브레이크 패드 교체','냉각수 교체','자동차 검사','기타 정비'];
-const STATUS_CATS = ['긁힘/찌그러짐','경고등 점등','타이어 이상','유리/외관 파손','기타'];
+const STATUS_CATS = ['상태이상','경고등 점등','기타'];
+
+// 자동차 경고등 라이브러리
+const WARNING_LIGHTS = [
+  {id:'engine',  name:'엔진 경고등',     icon:'⚙️',  color:'#FFA500',sev:'high',  desc:'엔진 시스템에 문제가 감지됐어요. 가능한 빨리 정비소 점검을 받으세요.'},
+  {id:'oil',     name:'엔진 오일',       icon:'🛢️',  color:'#DC2626',sev:'critical',desc:'오일 압력이 낮습니다. 즉시 차를 세우고 시동을 끄세요. 오일 부족 시 엔진 손상 위험.'},
+  {id:'battery', name:'배터리',          icon:'🔋',  color:'#DC2626',sev:'critical',desc:'배터리 충전 시스템 이상. 발전기(알터네이터) 문제일 수 있어요. 곧 시동이 꺼질 수 있음.'},
+  {id:'coolant', name:'엔진 과열',       icon:'🌡️',  color:'#DC2626',sev:'critical',desc:'냉각수 온도가 너무 높아요. 즉시 안전한 곳에 정차하고 엔진을 식히세요.'},
+  {id:'brake',   name:'브레이크',        icon:'🅿',  color:'#DC2626',sev:'critical',desc:'주차 브레이크가 걸려 있거나 브레이크액 부족. 풋브레이크 작동 점검 필요.'},
+  {id:'abs',     name:'ABS',            icon:'🛑',  color:'#FFA500',sev:'high',  desc:'잠김 방지 브레이크 시스템 이상. 일반 브레이크는 작동하지만 급제동 시 위험.'},
+  {id:'airbag',  name:'에어백',          icon:'💢',  color:'#FFA500',sev:'high',  desc:'에어백 시스템 이상. 사고 시 에어백이 작동하지 않을 수 있어요.'},
+  {id:'tpms',    name:'타이어 공기압',    icon:'⚠',  color:'#FFA500',sev:'mid',   desc:'타이어 공기압이 부족하거나 새고 있어요. 가까운 정비소에서 점검하세요.'},
+  {id:'seatbelt',name:'안전벨트',        icon:'🔔',  color:'#DC2626',sev:'mid',   desc:'안전벨트를 매주세요.'},
+  {id:'door',    name:'도어 열림',       icon:'🚪',  color:'#FFA500',sev:'low',   desc:'문이 완전히 닫히지 않았어요.'},
+  {id:'fuel',    name:'연료 부족',       icon:'⛽',  color:'#FFA500',sev:'mid',   desc:'연료가 곧 떨어집니다. 가까운 주유소로 가세요.'},
+  {id:'washer',  name:'워셔액 부족',     icon:'💧',  color:'#FFA500',sev:'low',   desc:'와이퍼 워셔액을 보충하세요.'},
+  {id:'esp',     name:'ESP/VDC',        icon:'🌀',  color:'#FFA500',sev:'mid',   desc:'차량 자세제어 장치(ESP/VDC) 작동 중이거나 이상. 미끄러운 노면 주의.'},
+  {id:'glow',    name:'예열 플러그',     icon:'🔥',  color:'#FFA500',sev:'mid',   desc:'(디젤) 예열 플러그 동작 중입니다. 사라진 후 시동을 거세요.'},
+  {id:'dpf',     name:'매연 필터',       icon:'☁',  color:'#FFA500',sev:'mid',   desc:'(디젤) DPF 재생이 필요해요. 일정 속도로 30분 이상 주행하세요.'},
+  {id:'light',   name:'전조등',          icon:'💡',  color:'#FFA500',sev:'low',   desc:'전조등 또는 미등 전구 이상. 점검하세요.'},
+  {id:'steer',   name:'조향(EPS)',      icon:'🔄',  color:'#FFA500',sev:'high',  desc:'전동 파워 스티어링 이상. 조향이 무거워질 수 있어요.'},
+  {id:'service', name:'정기 점검',       icon:'🔧',  color:'#16A34A',sev:'low',   desc:'정기 점검 시점이 다가왔어요. 정비소를 방문하세요.'},
+];
+
+// 소모품 표준 교환 주기 (km)
+const MAINT_STANDARD = {
+  '엔진오일 교체':   7000,
+  '타이어 교체':     60000,
+  '타이어 로테이션': 10000,
+  '배터리 교체':     40000,
+  '에어필터 교체':   20000,
+  '브레이크 패드 교체': 40000,
+  '냉각수 교체':     60000,
+  '자동차 검사':     20000,
+};
 const PURPOSES = [{v:'work',l:'업무'},{v:'personal',l:'개인'}];
 const CHECKLIST_SECTIONS=[
   {key:'front',label:'전면',items:['범퍼','본넷','헤드라이트','윈드실드']},
@@ -1462,8 +1543,6 @@ function addAccPhoto(d){accPhotos.push(d);renderPhotoGrid('acc-photos',accPhotos
 function removeAccPhoto(i){accPhotos.splice(i,1);renderPhotoGrid('acc-photos',accPhotos,'addAccPhoto','removeAccPhoto');}
 function addMaintPhoto(d){maintPhotos.push(d);renderPhotoGrid('maint-photos',maintPhotos,'addMaintPhoto','removeMaintPhoto');}
 function removeMaintPhoto(i){maintPhotos.splice(i,1);renderPhotoGrid('maint-photos',maintPhotos,'addMaintPhoto','removeMaintPhoto');}
-function addStatusPhoto(d){statusPhotos.push(d);renderPhotoGrid('status-photos',statusPhotos,'addStatusPhoto','removeStatusPhoto');}
-function removeStatusPhoto(i){statusPhotos.splice(i,1);renderPhotoGrid('status-photos',statusPhotos,'addStatusPhoto','removeStatusPhoto');}
 
 function openLightbox(src){document.getElementById('lb-img').src=src;document.getElementById('lightbox').classList.add('open');}
 function closeLightbox(){document.getElementById('lightbox').classList.remove('open');}
@@ -1630,7 +1709,11 @@ function renderHome(){
     }
   </div>`;
 
-  // ── 리스트: 정비기록 / 계기판 촬영 / 차량상태
+  // ── 소모품 교환시기 위젯
+  const maintWidget=buildMaintWidget(sel);
+  if(maintWidget)html+=`<p class="ql-sec">소모품 교환 시기</p>${maintWidget}`;
+
+  // ── 리스트: 정비/계기판/차량상태/사고
   html+=`<p class="ql-sec">빠른 메뉴</p>
   <div class="ql-card">
     <div class="ql-row" onclick="go('maintenance-add');initMaintenanceForm()">
@@ -1640,6 +1723,15 @@ function renderHome(){
       <div class="ql-body">
         <div class="ql-title">정비 기록</div>
         <div class="ql-sub">${lastMaint?lastMaint.type+' · '+fmtRelative(lastMaint.date):'기록 없음'}</div>
+      </div>${chevSvg}
+    </div>
+    <div class="ql-row" onclick="initOdometerForm();go('odo')">
+      <div class="ql-icon" style="background:#FFF3E0">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#FF9500" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+      </div>
+      <div class="ql-body">
+        <div class="ql-title">계기판 촬영</div>
+        <div class="ql-sub">주행거리 자동 인식 · 현재 ${fmtMileage(sel.mileage||0)}</div>
       </div>${chevSvg}
     </div>
     <div class="ql-row" onclick="go('status-list');renderStatusList()">
@@ -1755,6 +1847,11 @@ function renderMypage(){
       <div class="irow" onclick="go('vehicle-add')" style="cursor:pointer">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
         <span class="lb">차량 추가</span>
+      </div>
+      <div class="irow" onclick="openMaintIntervalsSheet()" style="cursor:pointer">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+        <span class="lb">소모품 교환 주기</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="var(--bd2)" stroke-width="2" width="14" height="14"><path d="M9 18l6-6-6-6"/></svg>
       </div>
     </div>
     <!-- 비상 연락처 섹션 -->
@@ -2319,12 +2416,13 @@ function saveAccident(){
 // ════════════════════════════════════════════════
 // VEHICLE STATUS
 // ════════════════════════════════════════════════
+let selWarningId=null; // 선택된 경고등 ID
+
 function initStatusForm(){
-  statusPhotos=[];selStatusCat=STATUS_CATS[0];
-  document.getElementById('status-desc').value='';
-  renderPhotoGrid('status-photos',statusPhotos,'addStatusPhoto','removeStatusPhoto');
+  statusPhotos=[];selStatusCat=STATUS_CATS[0];selWarningId=null;
   renderVehicleChip('status-vehicle-info',getSelectedVehicle());
   renderStatusChips();
+  renderStatusFormBody();
 }
 
 function renderStatusChips(){
@@ -2332,19 +2430,301 @@ function renderStatusChips(){
   c.innerHTML=STATUS_CATS.map(cat=>`<button class="ch pu ${cat===selStatusCat?'on':''}" onclick="selectStatusCat('${cat}')">${cat}</button>`).join('');
 }
 
-function selectStatusCat(cat){selStatusCat=cat;renderStatusChips();}
+function selectStatusCat(cat){
+  selStatusCat=cat;selWarningId=null;
+  renderStatusChips();
+  renderStatusFormBody();
+}
+
+function renderStatusFormBody(){
+  const body=document.getElementById('status-form-body');
+  if(!body)return;
+  let html='';
+
+  if(selStatusCat==='경고등 점등'){
+    html+=`<p class="sec" style="margin-top:16px">사진 <span style="font-weight:400;font-size:13px;color:var(--txm)">(AI 인식 가능)</span></p>
+      <div id="status-photos" class="pgrid"></div>
+      <div id="warning-ocr-result" style="display:none;background:var(--pr-s);border-radius:10px;padding:10px 12px;margin-top:8px;font-size:13px;color:var(--pr);font-weight:600"></div>
+      <p class="sec" style="margin-top:16px">경고등 선택</p>
+      <div class="wl-grid">${WARNING_LIGHTS.map(w=>`
+        <button class="wl-btn${selWarningId===w.id?' on':''}" onclick="selectWarning('${w.id}')" style="border-color:${selWarningId===w.id?w.color:'var(--bd2)'}">
+          <span class="wl-icon" style="color:${w.color}">${w.icon}</span>
+          <span class="wl-name">${w.name}</span>
+        </button>
+      `).join('')}</div>
+      ${selWarningId?(()=>{const w=WARNING_LIGHTS.find(x=>x.id===selWarningId);return `
+        <div class="wl-desc" style="border-left:4px solid ${w.color}">
+          <div class="wl-desc-hd" style="color:${w.color}">${w.icon} ${w.name}</div>
+          <div class="wl-desc-body">${w.desc}</div>
+        </div>`;})():''}
+      <p class="sec" style="margin-top:16px">추가 메모 <span style="font-weight:400;font-size:13px;color:var(--txm)">(선택)</span></p>
+      <textarea id="status-desc" class="fi" rows="3" placeholder="어떤 상황에서 점등됐는지, 지속 시간 등"></textarea>`;
+  } else if(selStatusCat==='상태이상'){
+    html+=`<p class="sec" style="margin-top:16px">사진</p>
+      <div id="status-photos" class="pgrid"></div>
+      <p class="sec" style="margin-top:16px">증상 설명</p>
+      <textarea id="status-desc" class="fi" rows="4" placeholder="어디에 어떤 문제가 있는지 상세히 기록하세요 (예: 운전석 도어 긁힘, 시동 시 소음, 브레이크 밀림 등)"></textarea>`;
+  } else {
+    html+=`<p class="sec" style="margin-top:16px">사진</p>
+      <div id="status-photos" class="pgrid"></div>
+      <p class="sec" style="margin-top:16px">메모</p>
+      <textarea id="status-desc" class="fi" rows="4" placeholder="자유롭게 기록하세요"></textarea>`;
+  }
+
+  body.innerHTML=html;
+  renderPhotoGrid('status-photos',statusPhotos,'addStatusPhoto','removeStatusPhoto');
+}
+
+function selectWarning(id){
+  selWarningId=selWarningId===id?null:id;
+  renderStatusFormBody();
+}
+
+// 경고등 사진 추가 시 AI 자동 인식 시도
+async function runWarningRecognition(imgData){
+  const resultEl=document.getElementById('warning-ocr-result');
+  if(!resultEl)return;
+  const ocrKey=LS.cfg().ocrKey||'';
+  if(!ocrKey.startsWith('AIza')){
+    return; // Gemini 키 없으면 스킵
+  }
+  resultEl.style.display='block';
+  resultEl.textContent='🔍 AI가 경고등을 분석 중...';
+  try{
+    const lightList=WARNING_LIGHTS.map(w=>`${w.id}=${w.name}`).join(', ');
+    const small=await _shrinkForGemini(imgData);
+    const base64=small.split(',')[1];
+    const res=await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${encodeURIComponent(ocrKey)}`,
+      {method:'POST',headers:{'Content-Type':'application/json'},
+       body:JSON.stringify({
+         contents:[{parts:[
+           {text:`This is a car dashboard photo showing warning lights. Identify which warning lights are illuminated from this list: ${lightList}. Reply ONLY with the matching id(s) separated by comma. If none match, reply "none".`},
+           {inlineData:{mimeType:'image/jpeg',data:base64}}
+         ]}],
+         generationConfig:{maxOutputTokens:30,temperature:0}
+       })
+    });
+    if(!res.ok)throw new Error('AI 분석 실패');
+    const json=await res.json();
+    const text=json.candidates?.[0]?.content?.parts?.[0]?.text?.trim()||'';
+    const ids=text.toLowerCase().split(',').map(s=>s.trim()).filter(s=>s&&s!=='none');
+    const matched=ids.find(id=>WARNING_LIGHTS.find(w=>w.id===id));
+    if(matched){
+      const w=WARNING_LIGHTS.find(x=>x.id===matched);
+      selWarningId=matched;
+      renderStatusFormBody();
+      const r2=document.getElementById('warning-ocr-result');
+      if(r2){r2.style.display='block';r2.innerHTML=`✓ AI 인식: <strong>${w.name}</strong>`;}
+    } else {
+      resultEl.innerHTML=`경고등을 자동 인식하지 못했어요. 아래에서 직접 선택해주세요.`;
+    }
+  } catch(e){
+    resultEl.style.display='none';
+  }
+}
+
+function addStatusPhoto(d){
+  if(statusPhotos.length>=MAX_PHOTOS)return;
+  statusPhotos.push(d);
+  renderPhotoGrid('status-photos',statusPhotos,'addStatusPhoto','removeStatusPhoto');
+  if(selStatusCat==='경고등 점등'&&statusPhotos.length===1)runWarningRecognition(d);
+}
+
+function removeStatusPhoto(i){
+  statusPhotos.splice(i,1);
+  renderPhotoGrid('status-photos',statusPhotos,'addStatusPhoto','removeStatusPhoto');
+}
 
 function saveStatus(){
   const sel=getSelectedVehicle();
   if(!sel){toast('차량을 먼저 등록해주세요');return;}
+  const descEl=document.getElementById('status-desc');
   const rec={
     id:uid(),vehicleId:sel.id,category:selStatusCat,
-    description:document.getElementById('status-desc').value.trim()||null,
+    description:descEl?.value.trim()||null,
+    warningId:selStatusCat==='경고등 점등'?selWarningId:null,
     photos:statusPhotos,ts:new Date().toISOString(),createdAt:new Date().toISOString()
   };
   const ss=LS.status();ss.unshift(rec);LS.saveStatus(ss);
   toast('상태 기록이 저장됐어요');
   navTo('home');
+}
+
+// ════════════════════════════════════════════════
+// MAINTENANCE INTERVALS (소모품 교환 시기)
+// ════════════════════════════════════════════════
+function getMaintIntervals(){
+  const userIntervals=LS.cfg().maintIntervals||{};
+  return {...MAINT_STANDARD,...userIntervals};
+}
+
+function openMaintIntervalsSheet(){
+  const intervals=getMaintIntervals();
+  const list=document.getElementById('mi-list');
+  list.innerHTML=Object.keys(MAINT_STANDARD).map(type=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:0.5px solid var(--bd)">
+      <div style="flex:1">
+        <div style="font-size:14px;font-weight:600;color:var(--tx)">${type}</div>
+        <div style="font-size:11px;color:var(--txm)">표준 ${MAINT_STANDARD[type].toLocaleString()}km</div>
+      </div>
+      <input type="number" data-mi-type="${type}" value="${intervals[type]||MAINT_STANDARD[type]}" inputmode="numeric"
+        style="width:110px;padding:9px 10px;border:1.5px solid var(--bd2);border-radius:8px;text-align:right;font-family:inherit;font-size:14px;color:var(--tx);background:var(--sf);outline:none">
+    </div>
+  `).join('');
+  document.getElementById('mi-modal').style.display='flex';
+}
+
+function closeMaintIntervalsSheet(){
+  document.getElementById('mi-modal').style.display='none';
+}
+
+function saveMaintIntervals(){
+  const cfg=LS.cfg();
+  const newIntervals={};
+  document.querySelectorAll('#mi-list input[data-mi-type]').forEach(inp=>{
+    const type=inp.dataset.miType;
+    const v=parseInt(inp.value);
+    if(v>0&&v!==MAINT_STANDARD[type])newIntervals[type]=v;
+  });
+  cfg.maintIntervals=newIntervals;
+  LS.saveCfg(cfg);
+  closeMaintIntervalsSheet();
+  toast('소모품 교환 주기가 저장됐어요');
+}
+
+function resetMaintIntervals(){
+  const cfg=LS.cfg();
+  cfg.maintIntervals={};
+  LS.saveCfg(cfg);
+  closeMaintIntervalsSheet();
+  toast('표준값으로 초기화됐어요');
+}
+
+function buildMaintWidget(sel){
+  if(!sel)return '';
+  const curKm=sel.mileage||0;
+  const intervals=getMaintIntervals();
+  const allMaint=LS.maintenance().filter(m=>m.vehicleId===sel.id);
+
+  // 정비유형별 마지막 교환 시점
+  const items=Object.entries(intervals).filter(([t,iv])=>iv>0).map(([type,interval])=>{
+    const last=allMaint.filter(m=>m.type===type).sort((a,b)=>(b.mileage||0)-(a.mileage||0))[0];
+    const lastKm=last?.mileage||0;
+    const nextKm=lastKm+interval;
+    const remain=nextKm-curKm;
+    const progress=Math.max(0,Math.min(100,((curKm-lastKm)/interval)*100));
+    let status='ok',color='#16A34A',label;
+    if(remain<=0){status='over';color='#DC2626';label='교환 필요';}
+    else if(remain<=interval*0.15){status='soon';color='#FFA500';label=`${remain.toLocaleString()}km`;}
+    else {label=`${remain.toLocaleString()}km`;}
+    return {type,interval,lastKm,nextKm,remain,progress,status,color,label,hasRecord:!!last};
+  });
+
+  // 정렬: over → soon → ok, remain 적은 순
+  const order={over:0,soon:1,ok:2};
+  items.sort((a,b)=>order[a.status]-order[b.status]||a.remain-b.remain);
+
+  // 표시: 임박/초과 항목 우선 (최대 4개)
+  const shown=items.filter(i=>i.status!=='ok'||i.hasRecord).slice(0,4);
+  if(!shown.length)return '';
+
+  return `<div class="mw-card">
+    ${shown.map(i=>`
+      <div class="mw-row">
+        <div class="mw-info">
+          <div class="mw-name">${i.type}</div>
+          <div class="mw-sub">${i.hasRecord?`마지막 ${i.lastKm.toLocaleString()}km · 주기 ${i.interval.toLocaleString()}km`:`기록 없음 · 주기 ${i.interval.toLocaleString()}km`}</div>
+        </div>
+        <div class="mw-bar"><div class="mw-bar-fill" style="width:${i.progress}%;background:${i.color}"></div></div>
+        <div class="mw-status" style="color:${i.color}">${i.label}</div>
+      </div>
+    `).join('')}
+  </div>`;
+}
+
+// ════════════════════════════════════════════════
+// ODOMETER (계기판 촬영)
+// ════════════════════════════════════════════════
+let odoPhotos=[];
+
+function initOdometerForm(){
+  odoPhotos=[];
+  document.getElementById('odo-km').value='';
+  document.getElementById('odo-result').style.display='none';
+  document.getElementById('odo-save-btn').style.display='none';
+  renderVehicleChip('odo-vehicle-info',getSelectedVehicle());
+  renderPhotoGrid('odo-photos',odoPhotos,'addOdoPhoto','removeOdoPhoto');
+}
+
+function addOdoPhoto(d){
+  odoPhotos=[d]; // 한 장만 사용
+  renderPhotoGrid('odo-photos',odoPhotos,'addOdoPhoto','removeOdoPhoto');
+  runOdometerOCR(d);
+}
+
+function removeOdoPhoto(){
+  odoPhotos=[];
+  renderPhotoGrid('odo-photos',odoPhotos,'addOdoPhoto','removeOdoPhoto');
+  document.getElementById('odo-result').style.display='none';
+}
+
+async function runOdometerOCR(imgData){
+  const resultEl=document.getElementById('odo-result');
+  resultEl.style.display='block';
+  resultEl.innerHTML=`<div style="font-size:13px;color:var(--pr);font-weight:600">🔍 주행거리 인식 중...</div>`;
+  const ocrKey=LS.cfg().ocrKey||'';
+  if(!ocrKey.startsWith('AIza')){
+    resultEl.innerHTML=`<div style="font-size:13px;color:var(--txm)">AI 인식을 사용하려면 내 정보 → 설정에서 Gemini API 키를 등록하세요. 그동안 수동으로 입력해주세요.</div>`;
+    return;
+  }
+  try{
+    const small=await _shrinkForGemini(imgData);
+    const base64=small.split(',')[1];
+    const res=await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${encodeURIComponent(ocrKey)}`,
+      {method:'POST',headers:{'Content-Type':'application/json'},
+       body:JSON.stringify({
+         contents:[{parts:[
+           {text:'This is a car odometer/dashboard photo. Find the total odometer reading (km). Reply with ONLY the number in km, no units, no commas. Example: "52340". If unsure, reply "none".'},
+           {inlineData:{mimeType:'image/jpeg',data:base64}}
+         ]}],
+         generationConfig:{maxOutputTokens:20,temperature:0}
+       })
+    });
+    if(!res.ok)throw new Error('Gemini '+res.status);
+    const json=await res.json();
+    const text=(json.candidates?.[0]?.content?.parts?.[0]?.text||'').trim().replace(/[^\d]/g,'');
+    if(text&&parseInt(text)>0){
+      const km=parseInt(text);
+      document.getElementById('odo-km').value=km;
+      document.getElementById('odo-save-btn').style.display='';
+      resultEl.innerHTML=`<div style="font-size:13px;color:var(--pr);font-weight:700">✓ 인식 완료: <span style="font-size:18px">${km.toLocaleString()} km</span></div>
+        <div style="font-size:11px;color:var(--txm);margin-top:4px">아래 값을 확인하고 [주행거리 갱신] 버튼을 눌러주세요</div>`;
+    } else {
+      resultEl.innerHTML=`<div style="font-size:13px;color:var(--txm)">주행거리를 인식하지 못했어요. 수동으로 입력해주세요.</div>`;
+    }
+  } catch(e){
+    resultEl.innerHTML=`<div style="font-size:13px;color:var(--dng)">인식 실패: ${e.message}</div>`;
+  }
+}
+
+function saveOdometer(){
+  const sel=getSelectedVehicle();
+  if(!sel){toast('차량을 먼저 등록해주세요');return;}
+  const km=parseInt(document.getElementById('odo-km').value);
+  if(!km||km<=0){toast('주행거리를 입력하세요');return;}
+  if(sel.mileage&&km<sel.mileage){
+    if(!confirm(`현재 ${sel.mileage.toLocaleString()}km보다 낮은 값(${km.toLocaleString()}km)입니다. 계속하시겠어요?`))return;
+  }
+  const vs=LS.vehicles();
+  const idx=vs.findIndex(v=>v.id===sel.id);
+  if(idx>=0){
+    vs[idx].mileage=km;
+    LS.saveVehicles(vs);
+    toast(`주행거리 ${km.toLocaleString()}km로 갱신됐어요`);
+    navTo('home');
+  }
 }
 
 // ════════════════════════════════════════════════
