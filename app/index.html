@@ -140,9 +140,12 @@ select.fi{-webkit-appearance:none;appearance:none;background-image:url("data:ima
 .frow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 /* ── Chips ──────────────────────────────────────── */
 .cg{display:flex;flex-wrap:wrap;gap:8px}
-.ch{background:var(--sf);border:1.5px solid var(--bd2);border-radius:20px;padding:6px 14px;font-size:13px;font-weight:600;cursor:pointer;color:var(--tx2)}
-.ch.on{border-color:var(--pr);background:var(--pr);color:#fff}
-.ch.pu.on{border-color:var(--pu);background:var(--pu)}
+.ch{background:var(--sf);border:1.5px solid var(--bd2);border-radius:20px;padding:6px 14px;font-size:13px;font-weight:600;cursor:pointer;color:var(--tx2);transition:background .15s,border-color .15s,color .15s,box-shadow .15s;font-family:inherit;-webkit-tap-highlight-color:transparent}
+.ch.on{border-color:var(--pr);background:var(--pr);color:#fff;font-weight:700;box-shadow:0 2px 8px rgba(26,60,110,.3)}
+.ch.pu.on{border-color:var(--pu);background:var(--pu);box-shadow:0 2px 8px rgba(124,58,237,.3)}
+/* 층수 칩 — 더 큰 크기 & 강조 */
+#floor-chips .ch{min-width:48px;padding:8px 14px;font-size:14px;border-radius:12px;text-align:center}
+#floor-chips .ch.on{background:var(--pr);border-color:var(--pr);color:#fff;font-weight:800;box-shadow:0 3px 10px rgba(26,60,110,.35);transform:translateY(-1px)}
 /* ── Mode onboarding ────────────────────────────── */
 .mode-card{background:var(--card);border:2px solid var(--bd);border-radius:var(--r);padding:26px 14px;text-align:center;flex:1;cursor:pointer;transition:border-color .15s,background .15s}
 .mode-card:active{border-color:var(--pr);background:var(--pr-s)}
