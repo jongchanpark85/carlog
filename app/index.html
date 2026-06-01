@@ -297,8 +297,9 @@ select.fi{-webkit-appearance:none;appearance:none;background-image:url("data:ima
 .zone-sel{
   flex:1;padding:10px 8px;background:var(--sf);border:1.5px solid var(--bd2);
   border-radius:10px;font-size:13px;color:var(--tx);font-family:inherit;outline:none;
-  -webkit-appearance:none;text-align:center;
+  -webkit-appearance:none;text-align:center;transition:background .15s,border-color .15s,color .15s;
 }
+.zone-sel.on{background:var(--pr);border-color:var(--pr);color:#fff;font-weight:700}
 /* ── Warning lights ──────────────────────────────── */
 .wl-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:4px;margin-bottom:14px}
 .wl-group-hd{display:flex;flex-direction:column;gap:2px;margin-top:14px;padding:8px 12px;background:var(--bg);border-radius:8px}
@@ -597,14 +598,14 @@ select.fi{-webkit-appearance:none;appearance:none;background-image:url("data:ima
     <p class="sec">구역 <span style="font-weight:400;font-size:13px;color:var(--txm)">(선택)</span></p>
     <!-- 드롭다운 3개 -->
     <div style="display:flex;gap:8px;margin-bottom:10px">
-      <select id="zone-ko" class="zone-sel">
+      <select id="zone-ko" class="zone-sel" onchange="this.classList.toggle('on',!!this.value)">
         <option value="">가~하</option>
         <option>가</option><option>나</option><option>다</option><option>라</option>
         <option>마</option><option>바</option><option>사</option><option>아</option>
         <option>자</option><option>차</option><option>카</option><option>타</option>
         <option>파</option><option>하</option>
       </select>
-      <select id="zone-en" class="zone-sel">
+      <select id="zone-en" class="zone-sel" onchange="this.classList.toggle('on',!!this.value)">
         <option value="">A~Z</option>
         <option>A</option><option>B</option><option>C</option><option>D</option>
         <option>E</option><option>F</option><option>G</option><option>H</option>
@@ -614,7 +615,7 @@ select.fi{-webkit-appearance:none;appearance:none;background-image:url("data:ima
         <option>U</option><option>V</option><option>W</option><option>X</option>
         <option>Y</option><option>Z</option>
       </select>
-      <select id="zone-num" class="zone-sel" oninput="this.size=1">
+      <select id="zone-num" class="zone-sel" onchange="this.classList.toggle('on',!!this.value)">
         <option value="">숫자</option>
       </select>
     </div>
@@ -2087,8 +2088,9 @@ function initParkingForm(){
   selFloorType='under';
   document.getElementById('fl-under').className='fl-type-btn fl-type-on';
   document.getElementById('fl-ground').className='fl-type-btn';
-  document.getElementById('zone-ko').value='';
-  document.getElementById('zone-en').value='';
+  ['zone-ko','zone-en','zone-num'].forEach(id=>{
+    const el=document.getElementById(id);if(el){el.value='';el.classList.remove('on');}
+  });
   const zoneNumEl=document.getElementById('zone-num');
   if(zoneNumEl.options.length<=1){
     let opts='<option value="">숫자</option>';
