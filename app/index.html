@@ -300,6 +300,8 @@ select.fi{-webkit-appearance:none;appearance:none;background-image:url("data:ima
   -webkit-appearance:none;text-align:center;transition:background .15s,border-color .15s,color .15s;
 }
 .zone-sel.on{background:var(--pr);border-color:var(--pr);color:#fff;font-weight:700}
+.zone-input-on{background:var(--pr)!important;border-color:var(--pr)!important;color:#fff!important;font-weight:700}
+.zone-input-on::placeholder{color:rgba(255,255,255,.5)!important}
 /* ── Warning lights ──────────────────────────────── */
 .wl-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:4px;margin-bottom:14px}
 .wl-group-hd{display:flex;flex-direction:column;gap:2px;margin-top:14px;padding:8px 12px;background:var(--bg);border-radius:8px}
@@ -619,7 +621,7 @@ select.fi{-webkit-appearance:none;appearance:none;background-image:url("data:ima
         <option value="">숫자</option>
       </select>
     </div>
-    <input id="zone-input" class="fi" placeholder="구역 직접 입력 (선택사항)" style="margin-bottom:12px">
+    <input id="zone-input" class="fi" placeholder="구역 직접 입력 (선택사항)" style="margin-bottom:12px" oninput="this.classList.toggle('zone-input-on',!!this.value.trim())">
     <div id="parking-purpose-section" style="display:none">
       <p class="sec">운행 목적</p>
       <div id="purpose-chips" class="cg" style="margin-bottom:12px"></div>
@@ -2058,7 +2060,7 @@ function parkDuration(start,end){
 // ════════════════════════════════════════════════
 function initParkingForm(){
   parkingPhotos=[];parkingLat=null;parkingLng=null;parkingAddr=null;selFloor=null;selPurpose='work';parkingOcrText=null;
-  document.getElementById('zone-input').value='';
+  const zIn=document.getElementById('zone-input');zIn.value='';zIn.classList.remove('zone-input-on');
   document.getElementById('parking-memo').value='';
   const ocrEl=document.getElementById('parking-ocr-result');
   if(ocrEl){ocrEl.style.display='none';ocrEl.innerHTML='';}
